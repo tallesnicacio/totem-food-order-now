@@ -54,11 +54,13 @@ const Settings = () => {
       <h1 className="text-3xl font-bold mb-6">Configurações</h1>
       
       <Tabs defaultValue="general">
-        <TabsListWrapper>
-          <TabsTrigger value="general">Geral</TabsTrigger>
-          <TabsTrigger value="payment">Pagamentos</TabsTrigger>
-          <TabsTrigger value="appearance">Aparência</TabsTrigger>
-        </TabsListWrapper>
+        <div className="overflow-x-auto pb-2">
+          <TabsList className="inline-flex min-w-full">
+            <TabsTrigger value="general">Geral</TabsTrigger>
+            <TabsTrigger value="payment">Pagamentos</TabsTrigger>
+            <TabsTrigger value="appearance">Aparência</TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="general" className="mt-6">
           <Card>
@@ -85,7 +87,7 @@ const Settings = () => {
                   <Switch
                     id="use-tables"
                     checked={useTables}
-                    onCheckedChange={setUseTables}
+                    onCheckedChange={(checked: boolean) => setUseTables(checked)}
                   />
                   <span className="text-sm text-muted-foreground">
                     {useTables 
@@ -233,14 +235,5 @@ const Settings = () => {
     </div>
   );
 };
-
-// Helper component for responsive tabs
-const TabsListWrapper = ({ children }: { children: React.ReactNode }) => (
-  <div className="overflow-x-auto pb-2">
-    <TabsListWrapper className="inline-flex min-w-full">
-      {children}
-    </TabsListWrapper>
-  </div>
-);
 
 export default Settings;
