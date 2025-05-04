@@ -1,10 +1,15 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import TotemMenu from "./pages/TotemMenu";
+import QRCodeMenu from "./pages/QRCodeMenu";
+import QRGenerator from "./pages/QRGenerator";
 
 const queryClient = new QueryClient();
 
@@ -16,7 +21,9 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/totem" element={<TotemMenu />} />
+          <Route path="/qrcode" element={<QRCodeMenu />} />
+          <Route path="/qr-generator" element={<QRGenerator />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

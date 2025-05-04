@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,13 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom colors for MenuTotem
+				"menutotem": {
+					green: "#4CAF50",
+					orange: "#FF9800",
+					gray: "#F5F5F5",
+					"dark-gray": "#333333",
 				}
 			},
 			borderRadius: {
