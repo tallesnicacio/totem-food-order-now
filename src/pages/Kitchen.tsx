@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { getOrdersByStatus, updateOrderStatus } from "@/services/orderService";
@@ -123,12 +122,12 @@ const Kitchen = () => {
       <h1 className="text-3xl font-bold mb-6">Cozinha</h1>
       
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
-        <TabsListWrapper>
+        <TabsList className="inline-flex min-w-full border-b overflow-x-auto">
           <TabsTrigger value="new">Novos ({orders.filter(o => o.status === 'new').length})</TabsTrigger>
           <TabsTrigger value="preparing">Em preparo ({orders.filter(o => o.status === 'preparing').length})</TabsTrigger>
           <TabsTrigger value="ready">Prontos ({orders.filter(o => o.status === 'ready').length})</TabsTrigger>
           <TabsTrigger value="delivered">Entregues ({orders.filter(o => o.status === 'delivered').length})</TabsTrigger>
-        </TabsListWrapper>
+        </TabsList>
 
         <TabsContent value="new" className="mt-4">
           {loading ? (
@@ -173,14 +172,5 @@ const Kitchen = () => {
     </div>
   );
 };
-
-// Helper component for responsive tabs
-const TabsListWrapper = ({ children }: { children: React.ReactNode }) => (
-  <div className="overflow-x-auto pb-2">
-    <TabsListWrapper className="inline-flex min-w-full border-b">
-      {children}
-    </TabsListWrapper>
-  </div>
-);
 
 export default Kitchen;
