@@ -14,7 +14,8 @@ const Settings = () => {
   const { restaurant, loading } = useRestaurant();
   const [restaurantName, setRestaurantName] = useState(restaurant?.name || "");
   const [themeColor, setThemeColor] = useState(restaurant?.themeColor || "#FF5722");
-  const [useTables, setUseTables] = useState(restaurant?.useTables || true);
+  // Change the state type to boolean explicitly, not just true
+  const [useTables, setUseTables] = useState<boolean>(restaurant?.useTables || true);
   const [paymentMethods, setPaymentMethods] = useState({
     pix: restaurant?.paymentMethods.pix || false,
     creditCard: restaurant?.paymentMethods.creditCard || false,
