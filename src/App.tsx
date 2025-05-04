@@ -13,6 +13,7 @@ import QRGenerator from "./pages/QRGenerator";
 import Kitchen from "./pages/Kitchen";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/kitchen" element={<Kitchen />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

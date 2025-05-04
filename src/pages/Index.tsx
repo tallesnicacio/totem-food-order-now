@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChefHat, ClipboardList, LayoutDashboard, QrCode, Settings, Utensils } from "lucide-react";
+import { ChefHat, ClipboardList, LayoutDashboard, QrCode, Settings, Utensils, Users } from "lucide-react";
 
 const Index = () => {
   return (
@@ -53,6 +53,13 @@ const Index = () => {
           title="Configurações"
           description="Configure opções do restaurante e do sistema"
           icon={<Settings className="h-6 w-6" />}
+        />
+
+        <LinkCard
+          to="/admin"
+          title="Controle Administrativo"
+          description="Gerencie restaurantes e liberações de funcionalidades"
+          icon={<Users className="h-6 w-6" />}
         />
       </div>
     </div>
