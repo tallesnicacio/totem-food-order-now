@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -6,8 +7,11 @@ import { Header } from "@/components/Header";
 import { ProductGrid } from "@/components/ProductGrid";
 import { CheckoutForm } from "@/components/CheckoutForm";
 import { OrderSuccess } from "@/components/OrderSuccess";
-import { CATEGORIES, PRODUCTS, RESTAURANT } from "@/data/mockData";
 import { CartItem, Product } from "@/types";
+import { useCategories, useProducts, useRestaurant } from "@/hooks/useData";
+import { createOrder } from "@/services/orderService";
+import { toast } from "@/components/ui/use-toast";
+import { Loader } from "lucide-react";
 
 type MenuState = "menu" | "checkout" | "success";
 
@@ -18,8 +22,12 @@ const QRCodeMenu = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
   const [tableId, setTableId] = useState<string | undefined>();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const location = useLocation();
+  const { categories, loading: loadingCategories } = useCategories();
+  const { products, loading: loadingProducts } = useProducts(selectedCategory || undefined);
+  const { restaurant, loading: loadingRestaurant } = useRestaurant();
   
   useEffect(() => {
     // Parse table ID from URL query params
@@ -30,10 +38,6 @@ const QRCodeMenu = () => {
       setTableId(mesa);
     }
   }, [location]);
-  
-  const filteredProducts = selectedCategory 
-    ? PRODUCTS.filter(product => product.categoryId === selectedCategory)
-    : PRODUCTS;
   
   const handleAddToCart = (product: Product) => {
     setCartItems(prevItems => {
@@ -77,16 +81,37 @@ const QRCodeMenu = () => {
     setMenuState("checkout");
   };
   
-  const handleCompleteOrder = (customerName: string, paymentMethod: string, tableIdInput?: string) => {
-    // Aqui poderia ter uma integração com o Supabase para salvar o pedido
-    // Por enquanto apenas simularemos o sucesso do pedido
+  const handleCompleteOrder = async (customerName: string, paymentMethod: string, tableIdInput?: string) => {
+    if (!restaurant) return;
     
-    // Use o tableId da URL ou o informado no checkout
-    const finalTableId = tableId || tableIdInput;
-    
-    const randomOrderNumber = Math.floor(1000 + Math.random() * 9000).toString();
-    setOrderNumber(randomOrderNumber);
-    setMenuState("success");
+    try {
+      setIsSubmitting(true);
+      // Use o tableId da URL ou o informado no checkout
+      const finalTableId = tableId || tableIdInput;
+      
+      const total = cartItems.reduce((sum, item) => {
+        return sum + (item.product.price * item.quantity);
+      }, 0);
+
+      // Save order to Supabase
+      const order = await createOrder(cartItems, total, paymentMethod, customerName, finalTableId);
+      
+      if (order) {
+        setOrderNumber(order.id.slice(-4));
+        setMenuState("success");
+      } else {
+        throw new Error("Failed to create order");
+      }
+    } catch (error) {
+      console.error("Error creating order:", error);
+      toast({
+        title: "Erro",
+        description: "Houve um problema ao finalizar seu pedido. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   const handleNewOrder = () => {
@@ -98,13 +123,23 @@ const QRCodeMenu = () => {
   const total = cartItems.reduce((sum, item) => {
     return sum + (item.product.price * item.quantity);
   }, 0);
+
+  // Show loading state
+  if (loadingRestaurant) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Carregando...</span>
+      </div>
+    );
+  }
   
   return (
     <>
-      {menuState === "menu" && (
+      {menuState === "menu" && restaurant && (
         <div className="min-h-screen flex flex-col">
           <Header 
-            restaurant={RESTAURANT}
+            restaurant={restaurant}
             cartItemCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
             onCartClick={() => setIsCartOpen(true)}
           />
@@ -116,14 +151,16 @@ const QRCodeMenu = () => {
           )}
           
           <CategorySelector 
-            categories={CATEGORIES}
+            categories={categories}
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
+            loading={loadingCategories}
           />
           
           <ProductGrid 
-            products={filteredProducts}
+            products={products}
             onAddToCart={handleAddToCart}
+            loading={loadingProducts}
           />
           
           <CartDrawer 
@@ -137,19 +174,20 @@ const QRCodeMenu = () => {
         </div>
       )}
       
-      {menuState === "checkout" && (
+      {menuState === "checkout" && restaurant && (
         <div className="min-h-screen flex flex-col">
           <Header 
-            restaurant={RESTAURANT}
+            restaurant={restaurant}
             cartItemCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
             onCartClick={() => setMenuState("menu")}
           />
           
           <CheckoutForm 
             total={total}
-            restaurant={RESTAURANT}
+            restaurant={restaurant}
             onCancel={() => setMenuState("menu")}
             onComplete={handleCompleteOrder}
+            isSubmitting={isSubmitting}
           />
         </div>
       )}

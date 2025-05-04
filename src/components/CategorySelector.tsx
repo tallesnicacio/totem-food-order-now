@@ -1,17 +1,32 @@
 
 import { Category } from "@/types";
+import { Skeleton } from "./ui/skeleton";
 
 interface CategorySelectorProps {
   categories: Category[];
   selectedCategory: string | null;
   onSelectCategory: (categoryId: string | null) => void;
+  loading?: boolean;
 }
 
 export const CategorySelector = ({ 
   categories, 
   selectedCategory, 
-  onSelectCategory 
+  onSelectCategory,
+  loading = false
 }: CategorySelectorProps) => {
+  if (loading) {
+    return (
+      <div className="py-4 overflow-x-auto">
+        <div className="flex gap-2 px-4 min-w-max">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-10 w-20 rounded-full" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="py-4 overflow-x-auto">
       <div className="flex gap-2 px-4 min-w-max">

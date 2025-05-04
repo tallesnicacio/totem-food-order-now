@@ -3,19 +3,22 @@ import { Restaurant } from "@/types";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { formatCurrency } from "@/utils/format";
+import { Loader } from "lucide-react";
 
 interface CheckoutFormProps {
   total: number;
   restaurant: Restaurant;
   onCancel: () => void;
   onComplete: (customerName: string, paymentMethod: string, tableId?: string) => void;
+  isSubmitting?: boolean;
 }
 
 export const CheckoutForm = ({ 
   total, 
   restaurant,
   onCancel,
-  onComplete
+  onComplete,
+  isSubmitting = false
 }: CheckoutFormProps) => {
   const [customerName, setCustomerName] = useState("");
   const [tableId, setTableId] = useState("");
@@ -129,14 +132,23 @@ export const CheckoutForm = ({
               onClick={onCancel}
               variant="outline" 
               className="flex-1"
+              disabled={isSubmitting}
             >
               Voltar
             </Button>
             <Button 
               type="submit" 
               className="flex-1 bg-primary hover:bg-primary/90"
+              disabled={isSubmitting}
             >
-              Confirmar
+              {isSubmitting ? (
+                <>
+                  <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  Processando...
+                </>
+              ) : (
+                "Confirmar"
+              )}
             </Button>
           </div>
         </form>

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { CartDrawer } from "@/components/CartDrawer";
 import { CategorySelector } from "@/components/CategorySelector";
@@ -6,8 +7,11 @@ import { ProductGrid } from "@/components/ProductGrid";
 import { CheckoutForm } from "@/components/CheckoutForm";
 import { OrderSuccess } from "@/components/OrderSuccess";
 import { WelcomeTotem } from "@/components/WelcomeTotem";
-import { CATEGORIES, PRODUCTS, RESTAURANT } from "@/data/mockData";
 import { CartItem, Product } from "@/types";
+import { useCategories, useProducts, useRestaurant } from "@/hooks/useData";
+import { createOrder } from "@/services/orderService";
+import { toast } from "@/components/ui/use-toast";
+import { Loader } from "lucide-react";
 
 type TotemState = "welcome" | "menu" | "checkout" | "success";
 
@@ -17,10 +21,11 @@ const TotemMenu = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const filteredProducts = selectedCategory 
-    ? PRODUCTS.filter(product => product.categoryId === selectedCategory)
-    : PRODUCTS;
+  const { categories, loading: loadingCategories } = useCategories();
+  const { products, loading: loadingProducts } = useProducts(selectedCategory || undefined);
+  const { restaurant, loading: loadingRestaurant } = useRestaurant();
   
   const handleAddToCart = (product: Product) => {
     setCartItems(prevItems => {
@@ -64,13 +69,34 @@ const TotemMenu = () => {
     setTotemState("checkout");
   };
   
-  const handleCompleteOrder = (customerName: string, paymentMethod: string, tableId?: string) => {
-    // Aqui poderia ter uma integração com o Supabase para salvar o pedido
-    // Por enquanto apenas simularemos o sucesso do pedido
+  const handleCompleteOrder = async (customerName: string, paymentMethod: string, tableId?: string) => {
+    if (!restaurant) return;
     
-    const randomOrderNumber = Math.floor(1000 + Math.random() * 9000).toString();
-    setOrderNumber(randomOrderNumber);
-    setTotemState("success");
+    try {
+      setIsSubmitting(true);
+      const total = cartItems.reduce((sum, item) => {
+        return sum + (item.product.price * item.quantity);
+      }, 0);
+      
+      // Save order to Supabase
+      const order = await createOrder(cartItems, total, paymentMethod, customerName, tableId);
+      
+      if (order) {
+        setOrderNumber(order.id.slice(-4));
+        setTotemState("success");
+      } else {
+        throw new Error("Failed to create order");
+      }
+    } catch (error) {
+      console.error("Error creating order:", error);
+      toast({
+        title: "Erro",
+        description: "Houve um problema ao finalizar seu pedido. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   const handleNewOrder = () => {
@@ -82,34 +108,46 @@ const TotemMenu = () => {
   const total = cartItems.reduce((sum, item) => {
     return sum + (item.product.price * item.quantity);
   }, 0);
+
+  // Show loading state
+  if (loadingRestaurant && totemState !== "welcome") {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Carregando...</span>
+      </div>
+    );
+  }
   
   return (
     <>
-      {totemState === "welcome" && (
+      {totemState === "welcome" && restaurant && (
         <WelcomeTotem 
-          restaurantName={RESTAURANT.name}
-          logo={RESTAURANT.logo}
+          restaurantName={restaurant.name}
+          logo={restaurant.logo}
           onStart={() => setTotemState("menu")}
         />
       )}
       
-      {totemState === "menu" && (
+      {totemState === "menu" && restaurant && (
         <div className="min-h-screen flex flex-col">
           <Header 
-            restaurant={RESTAURANT}
+            restaurant={restaurant}
             cartItemCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
             onCartClick={() => setIsCartOpen(true)}
           />
           
           <CategorySelector 
-            categories={CATEGORIES}
+            categories={categories}
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
+            loading={loadingCategories}
           />
           
           <ProductGrid 
-            products={filteredProducts}
+            products={products}
             onAddToCart={handleAddToCart}
+            loading={loadingProducts} 
           />
           
           <CartDrawer 
@@ -123,19 +161,20 @@ const TotemMenu = () => {
         </div>
       )}
       
-      {totemState === "checkout" && (
+      {totemState === "checkout" && restaurant && (
         <div className="min-h-screen flex flex-col">
           <Header 
-            restaurant={RESTAURANT}
+            restaurant={restaurant}
             cartItemCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
             onCartClick={() => setTotemState("menu")}
           />
           
           <CheckoutForm 
             total={total}
-            restaurant={RESTAURANT}
+            restaurant={restaurant}
             onCancel={() => setTotemState("menu")}
             onComplete={handleCompleteOrder}
+            isSubmitting={isSubmitting}
           />
         </div>
       )}

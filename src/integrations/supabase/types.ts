@@ -9,7 +9,173 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      categories: {
+        Row: {
+          icon: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          icon?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          icon?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          id: string
+          notes: string | null
+          order_id: string
+          price: number
+          product_id: string
+          quantity: number
+        }
+        Insert: {
+          id?: string
+          notes?: string | null
+          order_id: string
+          price: number
+          product_id: string
+          quantity: number
+        }
+        Update: {
+          id?: string
+          notes?: string | null
+          order_id?: string
+          price?: number
+          product_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          customer_name: string | null
+          id: string
+          payment_method: string
+          status: string
+          table_id: string | null
+          total: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          customer_name?: string | null
+          id?: string
+          payment_method: string
+          status?: string
+          table_id?: string | null
+          total: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          customer_name?: string | null
+          id?: string
+          payment_method?: string
+          status?: string
+          table_id?: string | null
+          total?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category_id: string
+          description: string
+          id: string
+          image: string
+          name: string
+          price: number
+        }
+        Insert: {
+          category_id: string
+          description: string
+          id?: string
+          image: string
+          name: string
+          price: number
+        }
+        Update: {
+          category_id?: string
+          description?: string
+          id?: string
+          image?: string
+          name?: string
+          price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant: {
+        Row: {
+          id: string
+          logo: string | null
+          name: string
+          payment_cash: boolean
+          payment_credit_card: boolean
+          payment_later: boolean
+          payment_pix: boolean
+          payment_timing: string
+          theme_color: string | null
+          use_tables: boolean
+        }
+        Insert: {
+          id?: string
+          logo?: string | null
+          name: string
+          payment_cash?: boolean
+          payment_credit_card?: boolean
+          payment_later?: boolean
+          payment_pix?: boolean
+          payment_timing?: string
+          theme_color?: string | null
+          use_tables?: boolean
+        }
+        Update: {
+          id?: string
+          logo?: string | null
+          name?: string
+          payment_cash?: boolean
+          payment_credit_card?: boolean
+          payment_later?: boolean
+          payment_pix?: boolean
+          payment_timing?: string
+          theme_color?: string | null
+          use_tables?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
