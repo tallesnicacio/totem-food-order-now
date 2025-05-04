@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { CartDrawer } from "@/components/CartDrawer";
 import { CategorySelector } from "@/components/CategorySelector";
@@ -65,7 +64,7 @@ const TotemMenu = () => {
     setTotemState("checkout");
   };
   
-  const handleCompleteOrder = (customerName: string, tableId?: string, paymentMethod: string) => {
+  const handleCompleteOrder = (customerName: string, paymentMethod: string, tableId?: string) => {
     // Aqui poderia ter uma integração com o Supabase para salvar o pedido
     // Por enquanto apenas simularemos o sucesso do pedido
     

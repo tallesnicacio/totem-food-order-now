@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -78,7 +77,7 @@ const QRCodeMenu = () => {
     setMenuState("checkout");
   };
   
-  const handleCompleteOrder = (customerName: string, tableIdInput?: string, paymentMethod: string) => {
+  const handleCompleteOrder = (customerName: string, paymentMethod: string, tableIdInput?: string) => {
     // Aqui poderia ter uma integração com o Supabase para salvar o pedido
     // Por enquanto apenas simularemos o sucesso do pedido
     

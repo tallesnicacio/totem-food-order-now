@@ -8,7 +8,7 @@ interface CheckoutFormProps {
   total: number;
   restaurant: Restaurant;
   onCancel: () => void;
-  onComplete: (customerName: string, tableId?: string, paymentMethod: string) => void;
+  onComplete: (customerName: string, paymentMethod: string, tableId?: string) => void;
 }
 
 export const CheckoutForm = ({ 
@@ -23,7 +23,7 @@ export const CheckoutForm = ({
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onComplete(customerName, tableId, paymentMethod);
+    onComplete(customerName, paymentMethod, tableId);
   };
   
   return (
