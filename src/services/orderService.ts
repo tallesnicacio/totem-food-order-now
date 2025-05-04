@@ -49,7 +49,7 @@ export async function createOrder(
       total: Number(orderData.total),
       tableId: orderData.table_id || undefined,
       customerName: orderData.customer_name || undefined,
-      status: orderData.status,
+      status: orderData.status as 'new' | 'preparing' | 'ready' | 'delivered',
       createdAt: new Date(orderData.created_at),
       updatedAt: new Date(orderData.updated_at)
     };
@@ -113,7 +113,7 @@ export async function getOrdersByStatus(status?: string): Promise<OrderSummary[]
   }
 }
 
-export async function updateOrderStatus(orderId: string, status: string): Promise<boolean> {
+export async function updateOrderStatus(orderId: string, status: 'new' | 'preparing' | 'ready' | 'delivered'): Promise<boolean> {
   try {
     const { error } = await supabase
       .from('orders')
@@ -132,3 +132,4 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
     return false;
   }
 }
+
