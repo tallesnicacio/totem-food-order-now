@@ -16,6 +16,7 @@ interface Product {
   available: boolean;
   initial_stock: number | null;
   minimum_stock: number | null;
+  out_of_stock?: boolean; // Add this property to the interface
 }
 
 const DailyInventory = () => {
@@ -78,7 +79,8 @@ const DailyInventory = () => {
             minimum_stock,
             products (
               id,
-              name
+              name,
+              out_of_stock
             )
           `)
           .eq('daily_inventory_id', inventory.id);
@@ -90,7 +92,8 @@ const DailyInventory = () => {
           name: item.products.name,
           available: item.available,
           initial_stock: item.initial_stock,
-          minimum_stock: item.minimum_stock
+          minimum_stock: item.minimum_stock,
+          out_of_stock: item.products.out_of_stock
         }));
         
       } else {
@@ -114,7 +117,7 @@ const DailyInventory = () => {
         // Get all products
         const { data: allProducts, error: productsError } = await supabase
           .from('products')
-          .select('id, name');
+          .select('id, name, out_of_stock');
         
         if (productsError) throw productsError;
         
@@ -122,7 +125,7 @@ const DailyInventory = () => {
         const dailyProductsToInsert = allProducts.map((product) => ({
           daily_inventory_id: inventory.id,
           product_id: product.id,
-          available: !product.out_of_stock, // Default to opposite of out_of_stock
+          available: !product.out_of_stock, // Now this should work with the updated query
           initial_stock: null,
           minimum_stock: null
         }));
@@ -139,9 +142,10 @@ const DailyInventory = () => {
         dailyProducts = allProducts.map((product) => ({
           id: product.id,
           name: product.name,
-          available: !product.out_of_stock,
+          available: !product.out_of_stock, // Now this should work with the updated query
           initial_stock: null,
-          minimum_stock: null
+          minimum_stock: null,
+          out_of_stock: product.out_of_stock
         }));
       }
       

@@ -9,6 +9,30 @@ import { CommunityQRManagement } from "@/components/admin/CommunityQRManagement"
 import { BillingOverview } from "@/components/admin/BillingOverview";
 import { supabase } from "@/integrations/supabase/client";
 
+// Add the AdminRestaurant interface
+export interface AdminRestaurant {
+  id: string;
+  name: string;
+  address?: string;
+  city?: string;
+  active: boolean;
+  created_at: string;
+  updated_at?: string;
+  billing_plan?: string;
+  billing_amount?: number;
+  billing_status?: string;
+  last_payment_date?: string;
+  in_community_qr?: boolean;
+  features: {
+    qrCommunity: boolean;
+    offlineMode: boolean;
+    paymentIntegration: boolean;
+    notifications: boolean;
+    analytics: boolean;
+    multiLocation: boolean;
+  };
+}
+
 const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState<string | null>(null);
