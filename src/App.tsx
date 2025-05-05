@@ -14,6 +14,8 @@ import Kitchen from "./pages/Kitchen";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
+import Auth from "./pages/Auth";
+import DailyInventory from "./pages/DailyInventory";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +34,8 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/daily-inventory" element={<DailyInventory />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
