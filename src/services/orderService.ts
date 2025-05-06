@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { CartItem, OrderSummary } from "@/types";
 import { mapOrderFromDB } from "@/types/supabase";
@@ -62,6 +61,49 @@ export async function createOrder(
       variant: "destructive",
     });
     return null;
+  }
+}
+
+// Nova função para carregar todos os pedidos independentemente do status
+export async function getAllOrders(): Promise<OrderSummary[]> {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items(*, products(*))
+      `)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return data.map(order => {
+      const orderSummary = mapOrderFromDB(order);
+      
+      // Map order items with products
+      orderSummary.items = order.order_items.map((item: any) => ({
+        product: {
+          id: item.products.id,
+          name: item.products.name,
+          description: item.products.description,
+          price: Number(item.products.price),
+          image: item.products.image,
+          categoryId: item.products.category_id
+        },
+        quantity: item.quantity,
+        notes: item.notes
+      }));
+
+      return orderSummary;
+    });
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível carregar os pedidos",
+      variant: "destructive",
+    });
+    return [];
   }
 }
 
@@ -132,4 +174,3 @@ export async function updateOrderStatus(orderId: string, status: 'new' | 'prepar
     return false;
   }
 }
-

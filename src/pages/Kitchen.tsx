@@ -1,44 +1,74 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { getOrdersByStatus, updateOrderStatus } from "@/services/orderService";
+import { getAllOrders, updateOrderStatus } from "@/services/orderService";
 import { OrderSummary } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCurrency, formatDateTime } from "@/utils/format";
+import { Loader } from "lucide-react";
 
 const Kitchen = () => {
-  const [orders, setOrders] = useState<OrderSummary[]>([]);
+  const [allOrders, setAllOrders] = useState<OrderSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'new' | 'preparing' | 'ready' | 'delivered'>('new');
   const { toast } = useToast();
 
-  useEffect(() => {
-    const loadOrders = async () => {
+  // Carregar todas as ordens independentemente do status
+  const loadOrders = async () => {
+    try {
       setLoading(true);
-      const fetchedOrders = await getOrdersByStatus(activeTab);
-      setOrders(fetchedOrders);
+      const fetchedOrders = await getAllOrders();
+      setAllOrders(fetchedOrders);
+    } catch (error: any) {
+      console.error("Error fetching orders:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os pedidos: " + (error.message || error),
+        variant: "destructive",
+      });
+    } finally {
       setLoading(false);
-    };
+    }
+  };
 
+  useEffect(() => {
     loadOrders();
     
-    // Set up polling to refresh orders every 30 seconds
+    // Configurar polling para atualizar os pedidos a cada 30 segundos
     const intervalId = setInterval(loadOrders, 30000);
     return () => clearInterval(intervalId);
-  }, [activeTab]);
+  }, []);
+
+  // Filtrar ordens com base no status selecionado
+  const filteredOrders = allOrders.filter(order => order.status === activeTab);
+  
+  // Contar ordens por status para as abas
+  const orderCounts = {
+    new: allOrders.filter(o => o.status === 'new').length,
+    preparing: allOrders.filter(o => o.status === 'preparing').length,
+    ready: allOrders.filter(o => o.status === 'ready').length,
+    delivered: allOrders.filter(o => o.status === 'delivered').length
+  };
 
   const handleUpdateStatus = async (orderId: string, newStatus: 'new' | 'preparing' | 'ready' | 'delivered') => {
     const success = await updateOrderStatus(orderId, newStatus);
     if (success) {
       toast({
         title: "Status atualizado",
-        description: `Pedido ${orderId.slice(0, 8)} atualizado para ${newStatus}`,
+        description: `Pedido ${orderId.slice(-4)} atualizado para ${newStatus}`,
       });
       
-      // Update the local state to remove the order from the current view
-      setOrders(orders.filter(order => order.id !== orderId));
+      // Atualizar todas as ordens no estado local em vez de apenas remover
+      setAllOrders(prevOrders => 
+        prevOrders.map(order => 
+          order.id === orderId 
+            ? { ...order, status: newStatus } 
+            : order
+        )
+      );
     }
   };
 
@@ -61,19 +91,36 @@ const Kitchen = () => {
     }
   };
 
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'new': return 'Novo';
+      case 'preparing': return 'Preparando';
+      case 'ready': return 'Pronto';
+      case 'delivered': return 'Entregue';
+      default: return status;
+    }
+  };
+
+  const getActionButtonText = (status: string) => {
+    switch (status) {
+      case 'new': return 'Iniciar preparo';
+      case 'preparing': return 'Marcar como pronto';
+      case 'ready': return 'Marcar como entregue';
+      default: return 'Atualizar status';
+    }
+  };
+
   const renderOrderCard = (order: OrderSummary) => (
     <Card key={order.id} className="mb-4">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
-          <CardTitle>Pedido #{order.id.slice(0, 8)}</CardTitle>
+          <CardTitle>Pedido #{order.id.slice(-4)}</CardTitle>
           <div className="text-sm text-muted-foreground">
             {formatDateTime(order.createdAt)}
           </div>
         </div>
         <Badge className={getStatusColor(order.status)}>
-          {order.status === 'new' ? 'Novo' : 
-           order.status === 'preparing' ? 'Preparando' : 
-           order.status === 'ready' ? 'Pronto' : 'Entregue'}
+          {getStatusText(order.status)}
         </Badge>
       </CardHeader>
       <CardContent>
@@ -109,64 +156,66 @@ const Kitchen = () => {
           <Button 
             onClick={() => handleUpdateStatus(order.id, getNextStatus(order.status))}
           >
-            {order.status === 'new' ? 'Iniciar preparo' : 
-             order.status === 'preparing' ? 'Marcar como pronto' : 'Marcar como entregue'}
+            {getActionButtonText(order.status)}
           </Button>
         )}
       </CardFooter>
     </Card>
   );
 
+  const renderTabContent = (status: 'new' | 'preparing' | 'ready' | 'delivered') => {
+    const statusOrders = allOrders.filter(o => o.status === status);
+    
+    if (loading && statusOrders.length === 0) {
+      return <div className="flex justify-center items-center py-10">
+        <Loader className="h-6 w-6 animate-spin mr-2" />
+        <span>Carregando pedidos...</span>
+      </div>;
+    }
+    
+    if (statusOrders.length === 0) {
+      return <div className="text-center py-10">
+        Nenhum pedido {getStatusText(status).toLowerCase()} no momento.
+      </div>;
+    }
+    
+    return statusOrders.map(renderOrderCard);
+  };
+
   return (
     <div className="container mx-auto px-4 py-6">
       <h1 className="text-3xl font-bold mb-6">Cozinha</h1>
       
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
-        <TabsList className="inline-flex min-w-full border-b overflow-x-auto">
-          <TabsTrigger value="new">Novos ({orders.filter(o => o.status === 'new').length})</TabsTrigger>
-          <TabsTrigger value="preparing">Em preparo ({orders.filter(o => o.status === 'preparing').length})</TabsTrigger>
-          <TabsTrigger value="ready">Prontos ({orders.filter(o => o.status === 'ready').length})</TabsTrigger>
-          <TabsTrigger value="delivered">Entregues ({orders.filter(o => o.status === 'delivered').length})</TabsTrigger>
+        <TabsList className="grid grid-cols-4 mb-4">
+          <TabsTrigger value="new">
+            Novos ({orderCounts.new})
+          </TabsTrigger>
+          <TabsTrigger value="preparing">
+            Em preparo ({orderCounts.preparing})
+          </TabsTrigger>
+          <TabsTrigger value="ready">
+            Prontos ({orderCounts.ready})
+          </TabsTrigger>
+          <TabsTrigger value="delivered">
+            Entregues ({orderCounts.delivered})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="new" className="mt-4">
-          {loading ? (
-            <div className="text-center py-10">Carregando pedidos...</div>
-          ) : orders.filter(o => o.status === 'new').length === 0 ? (
-            <div className="text-center py-10">Nenhum pedido novo no momento.</div>
-          ) : (
-            orders.filter(o => o.status === 'new').map(renderOrderCard)
-          )}
+          {renderTabContent('new')}
         </TabsContent>
         
         <TabsContent value="preparing" className="mt-4">
-          {loading ? (
-            <div className="text-center py-10">Carregando pedidos...</div>
-          ) : orders.filter(o => o.status === 'preparing').length === 0 ? (
-            <div className="text-center py-10">Nenhum pedido em preparo no momento.</div>
-          ) : (
-            orders.filter(o => o.status === 'preparing').map(renderOrderCard)
-          )}
+          {renderTabContent('preparing')}
         </TabsContent>
         
         <TabsContent value="ready" className="mt-4">
-          {loading ? (
-            <div className="text-center py-10">Carregando pedidos...</div>
-          ) : orders.filter(o => o.status === 'ready').length === 0 ? (
-            <div className="text-center py-10">Nenhum pedido pronto no momento.</div>
-          ) : (
-            orders.filter(o => o.status === 'ready').map(renderOrderCard)
-          )}
+          {renderTabContent('ready')}
         </TabsContent>
         
         <TabsContent value="delivered" className="mt-4">
-          {loading ? (
-            <div className="text-center py-10">Carregando pedidos...</div>
-          ) : orders.filter(o => o.status === 'delivered').length === 0 ? (
-            <div className="text-center py-10">Nenhum pedido entregue recentemente.</div>
-          ) : (
-            orders.filter(o => o.status === 'delivered').map(renderOrderCard)
-          )}
+          {renderTabContent('delivered')}
         </TabsContent>
       </Tabs>
     </div>
