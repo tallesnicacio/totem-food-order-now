@@ -38,9 +38,9 @@ export const PricingPlans = () => {
   const fetchPlans = async () => {
     try {
       setLoading(true);
+      // Using RPC function instead of direct table access
       const { data, error } = await supabase
-        .from('subscription_plans')
-        .select('*')
+        .rpc('get_subscription_plans')
         .order('price');
 
       if (error) throw error;

@@ -378,6 +378,63 @@ export type Database = {
           },
         ]
       }
+      subscription_plans: {
+        Row: {
+          billing_cycle: string
+          created_at: string
+          feature_analytics: boolean
+          feature_customization: boolean
+          feature_multi_location: boolean
+          feature_notifications: boolean
+          feature_offline_mode: boolean
+          feature_payment_integration: boolean
+          feature_qr_community: boolean
+          id: string
+          is_popular: boolean
+          max_products: number
+          max_users: number
+          name: string
+          price: number
+          type: string
+        }
+        Insert: {
+          billing_cycle: string
+          created_at?: string
+          feature_analytics?: boolean
+          feature_customization?: boolean
+          feature_multi_location?: boolean
+          feature_notifications?: boolean
+          feature_offline_mode?: boolean
+          feature_payment_integration?: boolean
+          feature_qr_community?: boolean
+          id?: string
+          is_popular?: boolean
+          max_products?: number
+          max_users?: number
+          name: string
+          price?: number
+          type: string
+        }
+        Update: {
+          billing_cycle?: string
+          created_at?: string
+          feature_analytics?: boolean
+          feature_customization?: boolean
+          feature_multi_location?: boolean
+          feature_notifications?: boolean
+          feature_offline_mode?: boolean
+          feature_payment_integration?: boolean
+          feature_qr_community?: boolean
+          id?: string
+          is_popular?: boolean
+          max_products?: number
+          max_users?: number
+          name?: string
+          price?: number
+          type?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           created_at: string
