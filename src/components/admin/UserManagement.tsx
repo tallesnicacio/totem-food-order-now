@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, AlertCircle } from "lucide-react";
 import { formatDateTime } from "@/utils/format";
 import { UserForm } from "./UserForm";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 type User = {
   id: string;
@@ -25,6 +26,7 @@ export const UserManagement = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -61,14 +63,30 @@ export const UserManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      setError(null);
       console.log("Fetching users...");
+      
+      // First check if the current user is a system admin
+      const { data: { session } } = await supabase.auth.getSession();
+      const userEmail = session?.user?.email;
+      
+      console.log("Current user email:", userEmail);
+      
+      // Only proceed if the user is one of the system admins
+      if (!userEmail || 
+          !['admin@menutoten.com', 'contato@matheusgusso.com', 'dev@menutoten.com'].includes(userEmail)) {
+        setError("Você não tem permissão para acessar esta página");
+        setLoading(false);
+        return;
+      }
       
       const { data: userProfiles, error: userProfilesError } = await supabase
         .from('user_profiles')
         .select(`
           *,
           establishments(name)
-        `);
+        `)
+        .order('name');
 
       if (userProfilesError) {
         console.error("Error details:", userProfilesError);
@@ -91,6 +109,7 @@ export const UserManagement = () => {
       setFilteredUsers(mappedUsers);
     } catch (error: any) {
       console.error("Error fetching users:", error);
+      setError(`Não foi possível carregar os usuários: ${error.message || error}`);
       toast({
         title: "Erro",
         description: "Não foi possível carregar os usuários: " + (error.message || error),
@@ -204,6 +223,16 @@ export const UserManagement = () => {
 
   if (loading) {
     return <div className="text-center py-10">Carregando usuários...</div>;
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive" className="my-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Erro</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
   }
 
   return (

@@ -525,6 +525,10 @@ export type Database = {
           type: string
         }
       }
+      is_system_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       update_subscription_plan: {
         Args: { plan_id: string; plan_data: Json }
         Returns: {
