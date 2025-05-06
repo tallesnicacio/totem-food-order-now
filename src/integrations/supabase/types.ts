@@ -475,9 +475,76 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_subscription_plan: {
+        Args: { plan_id: string }
+        Returns: boolean
+      }
+      get_subscription_plans: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          billing_cycle: string
+          created_at: string
+          feature_analytics: boolean
+          feature_customization: boolean
+          feature_multi_location: boolean
+          feature_notifications: boolean
+          feature_offline_mode: boolean
+          feature_payment_integration: boolean
+          feature_qr_community: boolean
+          id: string
+          is_popular: boolean
+          max_products: number
+          max_users: number
+          name: string
+          price: number
+          type: string
+        }[]
+      }
       get_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["user_role"]
+      }
+      insert_subscription_plan: {
+        Args: { plan_data: Json }
+        Returns: {
+          billing_cycle: string
+          created_at: string
+          feature_analytics: boolean
+          feature_customization: boolean
+          feature_multi_location: boolean
+          feature_notifications: boolean
+          feature_offline_mode: boolean
+          feature_payment_integration: boolean
+          feature_qr_community: boolean
+          id: string
+          is_popular: boolean
+          max_products: number
+          max_users: number
+          name: string
+          price: number
+          type: string
+        }
+      }
+      update_subscription_plan: {
+        Args: { plan_id: string; plan_data: Json }
+        Returns: {
+          billing_cycle: string
+          created_at: string
+          feature_analytics: boolean
+          feature_customization: boolean
+          feature_multi_location: boolean
+          feature_notifications: boolean
+          feature_offline_mode: boolean
+          feature_payment_integration: boolean
+          feature_qr_community: boolean
+          id: string
+          is_popular: boolean
+          max_products: number
+          max_users: number
+          name: string
+          price: number
+          type: string
+        }
       }
       user_belongs_to_establishment: {
         Args: { establishment_uuid: string }

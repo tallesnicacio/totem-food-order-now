@@ -26,48 +26,40 @@ serve(async (req) => {
     
     switch (action) {
       case 'get_plans':
-        // Get all subscription plans
+        // Get all subscription plans using RPC function
         const { data: plans, error: getError } = await supabase
-          .from('subscription_plans')
-          .select('*')
-          .order('price');
+          .rpc('get_subscription_plans');
           
         if (getError) throw getError;
         result = plans;
         break;
         
       case 'create_plan':
-        // Create a new subscription plan
+        // Create a new subscription plan using RPC function
         const { data: newPlan, error: createError } = await supabase
-          .from('subscription_plans')
-          .insert(data)
-          .select()
-          .single();
+          .rpc('insert_subscription_plan', { plan_data: data });
           
         if (createError) throw createError;
         result = newPlan;
         break;
         
       case 'update_plan':
-        // Update an existing subscription plan
+        // Update an existing subscription plan using RPC function
         const { id, ...updateData } = data;
         const { data: updatedPlan, error: updateError } = await supabase
-          .from('subscription_plans')
-          .update(updateData)
-          .eq('id', id)
-          .select()
-          .single();
+          .rpc('update_subscription_plan', {
+            plan_id: id,
+            plan_data: updateData
+          });
           
         if (updateError) throw updateError;
         result = updatedPlan;
         break;
         
       case 'delete_plan':
-        // Delete a subscription plan
-        const { error: deleteError } = await supabase
-          .from('subscription_plans')
-          .delete()
-          .eq('id', data.id);
+        // Delete a subscription plan using RPC function
+        const { data: deleteResult, error: deleteError } = await supabase
+          .rpc('delete_subscription_plan', { plan_id: data.id });
           
         if (deleteError) throw deleteError;
         result = { success: true };

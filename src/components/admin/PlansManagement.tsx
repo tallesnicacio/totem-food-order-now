@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,10 +39,9 @@ export const PlansManagement = () => {
 
   const fetchPlans = async () => {
     try {
-      // Using raw SQL query to fetch subscription plans
+      // Using RPC function to fetch subscription plans
       const { data, error } = await supabase
-        .rpc('get_subscription_plans')
-        .order('price');
+        .rpc('get_subscription_plans');
 
       if (error) throw error;
 
@@ -126,7 +126,7 @@ export const PlansManagement = () => {
 
       if (currentPlan.id) {
         // Update existing plan
-        const { error } = await supabase
+        const { data, error } = await supabase
           .rpc('update_subscription_plan', {
             plan_id: currentPlan.id,
             plan_data: planData
@@ -140,7 +140,7 @@ export const PlansManagement = () => {
         });
       } else {
         // Create new plan
-        const { error } = await supabase
+        const { data, error } = await supabase
           .rpc('insert_subscription_plan', {
             plan_data: planData
           });
@@ -171,7 +171,7 @@ export const PlansManagement = () => {
     }
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .rpc('delete_subscription_plan', { plan_id: id });
 
       if (error) throw error;
