@@ -96,7 +96,7 @@ const Products = () => {
             price: product.price,
             image: product.image,
             category_id: product.categoryId,
-            out_of_stock: false
+            out_of_stock: product.outOfStock || false
           })
           .eq('id', product.id);
 
@@ -117,18 +117,20 @@ const Products = () => {
             price: product.price,
             image: product.image,
             category_id: product.categoryId,
-            out_of_stock: false
+            out_of_stock: product.outOfStock || false
           })
           .select();
 
         if (error) throw error;
         
-        const newProduct = mapProductFromDB(data[0]);
-        setProducts([...products, newProduct]);
-        toast({
-          title: "Sucesso",
-          description: "Produto adicionado com sucesso",
-        });
+        if (data && data.length > 0) {
+          const newProduct = mapProductFromDB(data[0]);
+          setProducts([...products, newProduct]);
+          toast({
+            title: "Sucesso",
+            description: "Produto adicionado com sucesso",
+          });
+        }
       }
       
       setShowForm(false);
@@ -149,7 +151,7 @@ const Products = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="space-y-6">
       <PageHeader
         title="Produtos"
         description="Gerencie os produtos disponíveis para venda"

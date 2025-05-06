@@ -1,252 +1,170 @@
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, LogIn, UserPlus } from 'lucide-react';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { ShoppingBag } from "lucide-react";
 
 const Auth = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [session, setSession] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  
-  useEffect(() => {
-    // Check if user is already logged in
-    const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-      if (data.session) {
-        navigate('/');
-      }
-    };
-    
-    checkSession();
-    
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        if (session) {
-          navigate('/');
-        }
-      }
-    );
-    
-    // Clean up subscription on unmount
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
-  
-  const handleSignUp = async (e: React.FormEvent) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
       setLoading(true);
       
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
-      if (error) {
-        throw error;
-      }
-      
-      toast({
-        title: "Cadastro realizado com sucesso",
-        description: "Verifique seu email para confirmar o cadastro.",
-      });
-      
-    } catch (error: any) {
-      let errorMessage = "Não foi possível criar a conta.";
-      
-      if (error.message.includes("Email already")) {
-        errorMessage = "Este email já está cadastrado.";
-      }
-      
-      toast({
-        title: "Erro no cadastro",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      setLoading(true);
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       
       toast({
         title: "Login realizado com sucesso",
-        description: "Você será redirecionado para a página inicial.",
+        description: "Bem-vindo ao MenuTotem!",
       });
       
-      navigate('/');
-      
+      navigate("/dashboard");
     } catch (error: any) {
-      let errorMessage = "Não foi possível fazer login.";
-      
-      if (error.message.includes("Invalid login")) {
-        errorMessage = "Email ou senha incorretos.";
-      }
-      
+      console.error("Erro ao fazer login:", error);
       toast({
-        title: "Erro no login",
-        description: errorMessage,
+        title: "Erro ao fazer login",
+        description: error.message || "Verifique suas credenciais e tente novamente",
         variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
-  
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      setLoading(true);
+      
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.origin,
+        },
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Cadastro realizado com sucesso",
+        description: "Verifique seu email para confirmar o cadastro",
+      });
+    } catch (error: any) {
+      console.error("Erro ao registrar:", error);
+      toast({
+        title: "Erro ao registrar",
+        description: error.message || "Não foi possível criar sua conta",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
-  
-  if (session) {
-    return null; // Will redirect to home in useEffect
-  }
-  
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl">MenuTotem</CardTitle>
+        <CardHeader className="space-y-1 flex flex-col items-center">
+          <div className="flex items-center gap-2 mb-2">
+            <ShoppingBag className="h-6 w-6 text-primary" />
+            <h1 className="text-2xl font-bold">MenuTotem</h1>
+          </div>
+          <CardTitle className="text-2xl">Bem-vindo!</CardTitle>
           <CardDescription>
-            Acesse a plataforma para gerenciar seu restaurante
+            Faça login ou crie uma nova conta para continuar
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="signin">Login</TabsTrigger>
-              <TabsTrigger value="signup">Cadastro</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4">
+        <Tabs defaultValue="login" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="login">Login</TabsTrigger>
+            <TabsTrigger value="register">Cadastro</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="login">
+            <form onSubmit={handleLogin}>
+              <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
-                  <Input
-                    id="signin-email"
-                    placeholder="exemplo@email.com"
-                    type="email"
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="seu@email.com" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
-                
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password">Senha</Label>
-                  <div className="relative">
-                    <Input
-                      id="signin-password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Sua senha"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-0 top-0 h-10 w-10"
-                      onClick={togglePasswordVisibility}
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </Button>
-                  </div>
+                  <Label htmlFor="password">Senha</Label>
+                  <Input 
+                    id="password" 
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
                 </div>
-                
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={loading}
-                >
-                  <LogIn className="mr-2 h-4 w-4" />
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Entrando..." : "Entrar"}
                 </Button>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4">
+              </CardFooter>
+            </form>
+          </TabsContent>
+          
+          <TabsContent value="register">
+            <form onSubmit={handleRegister}>
+              <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    placeholder="exemplo@email.com"
-                    type="email"
+                  <Label htmlFor="register-email">Email</Label>
+                  <Input 
+                    id="register-email" 
+                    type="email" 
+                    placeholder="seu@email.com" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
-                
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Senha</Label>
-                  <div className="relative">
-                    <Input
-                      id="signup-password"
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Crie uma senha forte"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-0 top-0 h-10 w-10"
-                      onClick={togglePasswordVisibility}
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </Button>
-                  </div>
+                  <Label htmlFor="register-password">Senha</Label>
+                  <Input 
+                    id="register-password" 
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)} 
+                    required
+                  />
                 </div>
-                
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={loading}
-                >
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  {loading ? "Cadastrando..." : "Cadastrar"}
+              </CardContent>
+              <CardFooter>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Criando conta..." : "Criar conta"}
                 </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-        <CardFooter className="text-center text-sm text-muted-foreground">
-          Sistema de gerenciamento de cardápio digital e pedidos
-        </CardFooter>
+              </CardFooter>
+            </form>
+          </TabsContent>
+        </Tabs>
       </Card>
     </div>
   );
