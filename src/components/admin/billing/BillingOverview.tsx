@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Table } from "@/components/ui/table";
 import { Loader2 } from "lucide-react";
 import { BillingData, BillingStats } from "./types";
 import { BillingHeader } from "./BillingHeader";
@@ -38,25 +37,47 @@ export const BillingOverview = () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('establishments')
-        .select('*')
-        .order('name');
+        .select('id, name, billing_plan, billing_amount, billing_status, last_payment_date, city');
 
       if (error) throw error;
 
-      // Generate mock sales data for demonstration
-      const mockData = data.map((item: any) => ({
-        ...item,
-        monthly_sales: Math.floor(Math.random() * 10000) + 1000 // Random sales between 1000-11000
-      }));
+      // Fetch sales data for establishments that use percentage billing
+      const billingDataWithSales = await Promise.all(
+        data.map(async (item: any) => {
+          let monthlySales = 0;
+          
+          if (item.billing_plan === 'percentage') {
+            // Get the first and last day of the selected month
+            const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
+            const lastDay = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+            
+            // Fetch orders for this establishment within the date range
+            const { data: orderData, error: orderError } = await supabase
+              .from('orders')
+              .select('total')
+              .gte('created_at', firstDay.toISOString())
+              .lte('created_at', lastDay.toISOString());
+              
+            if (!orderError && orderData) {
+              monthlySales = orderData.reduce((sum: number, order: any) => sum + Number(order.total), 0);
+            }
+          }
+          
+          return {
+            ...item,
+            monthly_sales: monthlySales
+          };
+        })
+      );
 
-      setBillingData(mockData);
-      setFilteredData(mockData);
+      setBillingData(billingDataWithSales);
+      setFilteredData(billingDataWithSales);
       
       // Calculate billing stats
-      calculateStats(mockData);
+      calculateStats(billingDataWithSales);
       
       // Extract unique cities
-      const uniqueCities = Array.from(new Set(data?.map((r: any) => r.city).filter(Boolean) as string[]));
+      const uniqueCities = Array.from(new Set(data.map((r: any) => r.city).filter(Boolean) as string[]));
       setCities(uniqueCities);
       
     } catch (error) {

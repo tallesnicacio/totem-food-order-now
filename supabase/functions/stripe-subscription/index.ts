@@ -113,7 +113,14 @@ serve(async (req) => {
         
         // Verificar se o usuário já é um cliente no Stripe
         let customerId;
-        const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+        let customers;
+        
+        try {
+          customers = await stripe.customers.list({ email: user.email, limit: 1 });
+        } catch (stripeError) {
+          console.error('Erro ao buscar cliente no Stripe:', stripeError);
+          customers = { data: [] };
+        }
         
         if (customers.data.length > 0) {
           customerId = customers.data[0].id;
@@ -148,60 +155,76 @@ serve(async (req) => {
         
         // Criar preço no Stripe (ou usar um existente)
         let priceId;
-        const price = await stripe.prices.create({
-          currency: 'brl',
-          unit_amount: Math.round(parseFloat(planData.price) * 100), // Converter para centavos
-          recurring: {
-            interval: planData.billing_cycle === 'monthly' ? 'month' : 'year',
-          },
-          product_data: {
-            name: planData.name,
-            description: `Plano ${planData.name} - ${planData.max_products} produtos`,
-            metadata: {
-              plan_id: planData.id,
-              plan_type: planData.type
+        try {
+          const price = await stripe.prices.create({
+            currency: 'brl',
+            unit_amount: Math.round(parseFloat(String(planData.price)) * 100), // Converter para centavos
+            recurring: {
+              interval: planData.billing_cycle === 'monthly' ? 'month' : 'year',
+            },
+            product_data: {
+              name: planData.name,
+              description: `Plano ${planData.name} - ${planData.max_products} produtos`,
+              metadata: {
+                plan_id: planData.id,
+                plan_type: planData.type
+              }
             }
-          }
-        });
-        
-        priceId = price.id;
-        logStep('Preço criado ou recuperado', { priceId });
+          });
+          
+          priceId = price.id;
+          logStep('Preço criado ou recuperado', { priceId });
+        } catch (stripeError) {
+          console.error('Erro ao criar preço no Stripe:', stripeError);
+          throw new Error('Erro ao criar preço no Stripe');
+        }
         
         // Criar sessão de checkout
-        const session = await stripe.checkout.sessions.create({
-          customer: customerId,
-          payment_method_types: ['card'],
-          line_items: [
-            {
-              price: priceId,
-              quantity: 1,
-            },
-          ],
-          mode: 'subscription',
-          success_url: successUrl || `${req.headers.get('origin') || 'http://localhost:3000'}/subscription?success=true`,
-          cancel_url: cancelUrl || `${req.headers.get('origin') || 'http://localhost:3000'}/subscription?canceled=true`,
-          allow_promotion_codes: true,
-          metadata: {
-            user_id: user.id,
-            plan_id: planData.id,
-            establishment_id: (await supabase
-              .from('user_profiles')
-              .select('establishment_id')
-              .eq('id', user.id)
-              .single()).data?.establishment_id
-          }
-        });
-        
-        logStep('Sessão de checkout criada', { sessionId: session.id, url: session.url });
-        
-        result = { url: session.url };
+        try {
+          const session = await stripe.checkout.sessions.create({
+            customer: customerId,
+            payment_method_types: ['card'],
+            line_items: [
+              {
+                price: priceId,
+                quantity: 1,
+              },
+            ],
+            mode: 'subscription',
+            success_url: successUrl || `${req.headers.get('origin') || 'http://localhost:3000'}/subscription?success=true`,
+            cancel_url: cancelUrl || `${req.headers.get('origin') || 'http://localhost:3000'}/subscription?canceled=true`,
+            allow_promotion_codes: true,
+            metadata: {
+              user_id: user.id,
+              plan_id: planData.id,
+              establishment_id: (await supabase
+                .from('user_profiles')
+                .select('establishment_id')
+                .eq('id', user.id)
+                .single()).data?.establishment_id
+            }
+          });
+          
+          logStep('Sessão de checkout criada', { sessionId: session.id, url: session.url });
+          
+          result = { url: session.url };
+        } catch (stripeError) {
+          console.error('Erro ao criar sessão de checkout:', stripeError);
+          throw new Error('Erro ao criar sessão de checkout');
+        }
         break;
       }
       
       case 'create_portal': {
         // Criar uma sessão de portal para o cliente gerenciar sua assinatura
         // Verificar se o cliente existe no Stripe
-        const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+        let customers;
+        try {
+          customers = await stripe.customers.list({ email: user.email, limit: 1 });
+        } catch (stripeError) {
+          console.error('Erro ao buscar cliente no Stripe:', stripeError);
+          throw new Error('Erro ao buscar cliente no Stripe');
+        }
         
         if (customers.data.length === 0) {
           throw new Error('Nenhum cliente encontrado no Stripe com este e-mail');
@@ -210,14 +233,19 @@ serve(async (req) => {
         const customerId = customers.data[0].id;
         logStep('Cliente encontrado', { customerId });
         
-        const portalSession = await stripe.billingPortal.sessions.create({
-          customer: customerId,
-          return_url: data.returnUrl || `${req.headers.get('origin') || 'http://localhost:3000'}/subscription`,
-        });
-        
-        logStep('Sessão do portal criada', { sessionId: portalSession.id, url: portalSession.url });
-        
-        result = { url: portalSession.url };
+        try {
+          const portalSession = await stripe.billingPortal.sessions.create({
+            customer: customerId,
+            return_url: data.returnUrl || `${req.headers.get('origin') || 'http://localhost:3000'}/subscription`,
+          });
+          
+          logStep('Sessão do portal criada', { sessionId: portalSession.id, url: portalSession.url });
+          
+          result = { url: portalSession.url };
+        } catch (stripeError) {
+          console.error('Erro ao criar sessão do portal:', stripeError);
+          throw new Error('Erro ao criar sessão do portal');
+        }
         break;
       }
 

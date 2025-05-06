@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,7 +46,6 @@ export const PricingPlans = () => {
   const fetchPlans = async () => {
     try {
       setLoading(true);
-      // Using RPC function instead of direct table access
       const { data, error } = await supabase
         .rpc('get_subscription_plans');
 

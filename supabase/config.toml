@@ -4,10 +4,12 @@ project_id = "jstwhvchwdrwkzgdfgvt"
 [api]
 enabled = true
 port = 54321
-schemas = ["public", "storage"]
+schemas = ["public", "storage", "graphql_public"]
 
 [db]
 port = 54322
+shadow_port = 54320
+major_version = 15
 
 [studio]
 enabled = true
@@ -20,13 +22,19 @@ port = 54324
 
 [storage]
 enabled = true
+port = 54325
 
 [auth]
 enabled = true
+port = 54326
 
 [realtime]
 enabled = true
+port = 54327
 
 [functions]
-check_subscription = { verify_jwt = true }
-stripe_subscription = { verify_jwt = true }
+[functions.stripe-subscription]
+verify_jwt = true
+
+[functions.subscription_plans]
+verify_jwt = true

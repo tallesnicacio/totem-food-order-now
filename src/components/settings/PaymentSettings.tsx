@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -10,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Restaurant } from "@/types";
 import { formatCurrency, formatDate } from "@/utils/format";
+import { subscriptionService, SubscriptionInfo } from "@/services/subscriptionService";
 
 interface PaymentSettingsProps {
   restaurant: Restaurant | null;
@@ -28,13 +28,7 @@ export const PaymentSettings = ({ restaurant, onUpdate }: PaymentSettingsProps) 
     restaurant?.paymentTiming || 'before'
   );
 
-  const [subscription, setSubscription] = useState<{
-    plan: string;
-    status: string;
-    nextBillingDate: string | null;
-    amount: number;
-  } | null>(null);
-
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,37 +37,8 @@ export const PaymentSettings = ({ restaurant, onUpdate }: PaymentSettingsProps) 
 
   const fetchSubscriptionInfo = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) return;
-      
-      const { data: userData, error: userError } = await supabase
-        .from('user_profiles')
-        .select('establishment_id')
-        .eq('id', session.user.id)
-        .single();
-        
-      if (userError || !userData) return;
-      
-      const { data: establishmentData, error: establishmentError } = await supabase
-        .from('establishments')
-        .select('billing_plan, billing_status, billing_amount, last_payment_date')
-        .eq('id', userData.establishment_id)
-        .single();
-        
-      if (establishmentError || !establishmentData) return;
-      
-      setSubscription({
-        plan: establishmentData.billing_plan === 'monthly' ? 'Assinatura Mensal' : 'Porcentagem sobre Vendas',
-        status: establishmentData.billing_status === 'active' ? 'Ativo' : 
-                establishmentData.billing_status === 'pending' ? 'Pendente' : 'Inativo',
-        nextBillingDate: establishmentData.last_payment_date ? 
-                        new Date(new Date(establishmentData.last_payment_date).setMonth(
-                          new Date(establishmentData.last_payment_date).getMonth() + 1
-                        )).toISOString() : null,
-        amount: establishmentData.billing_amount || 0,
-      });
-      
+      const subscriptionData = await subscriptionService.checkSubscription();
+      setSubscription(subscriptionData);
     } catch (error) {
       console.error('Error fetching subscription info:', error);
     }

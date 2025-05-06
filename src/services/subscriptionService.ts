@@ -6,23 +6,50 @@ export interface SubscriptionInfo {
   status: string;
   amount: number;
   lastPaymentDate: string | null;
+  nextBillingDate?: string | null;
 }
 
 export const subscriptionService = {
   async checkSubscription(): Promise<SubscriptionInfo | null> {
     try {
-      const { data, error } = await supabase.functions.invoke('stripe-subscription', {
-        body: { action: 'check_subscription' }
-      });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
 
-      if (error) {
-        console.error('Erro ao verificar assinatura:', error);
-        return null;
+      const { data: userData, error: userError } = await supabase
+        .from('user_profiles')
+        .select('establishment_id')
+        .eq('id', session.user.id)
+        .single();
+        
+      if (userError || !userData?.establishment_id) return null;
+      
+      const { data: establishmentData, error: establishmentError } = await supabase
+        .from('establishments')
+        .select('billing_plan, billing_status, billing_amount, last_payment_date')
+        .eq('id', userData.establishment_id)
+        .single();
+        
+      if (establishmentError || !establishmentData) return null;
+
+      const lastPaymentDate = establishmentData.last_payment_date;
+      
+      // Calculate next billing date (30 days from last payment)
+      let nextBillingDate = null;
+      if (lastPaymentDate) {
+        const date = new Date(lastPaymentDate);
+        date.setMonth(date.getMonth() + 1);
+        nextBillingDate = date.toISOString();
       }
-
-      return data?.subscription || null;
+      
+      return {
+        plan: establishmentData.billing_plan || 'free',
+        status: establishmentData.billing_status || 'inactive',
+        amount: Number(establishmentData.billing_amount) || 0,
+        lastPaymentDate,
+        nextBillingDate
+      };
     } catch (err) {
-      console.error('Erro ao verificar assinatura:', err);
+      console.error('Error checking subscription:', err);
       return null;
     }
   },
@@ -41,13 +68,13 @@ export const subscriptionService = {
       });
 
       if (error) {
-        console.error('Erro ao criar sessão de checkout:', error);
+        console.error('Error creating checkout session:', error);
         return null;
       }
 
       return data?.url || null;
     } catch (err) {
-      console.error('Erro ao criar sessão de checkout:', err);
+      console.error('Error creating checkout session:', err);
       return null;
     }
   },
@@ -64,36 +91,14 @@ export const subscriptionService = {
       });
 
       if (error) {
-        console.error('Erro ao criar sessão do portal:', error);
+        console.error('Error creating portal session:', error);
         return null;
       }
 
       return data?.url || null;
     } catch (err) {
-      console.error('Erro ao criar sessão do portal:', err);
+      console.error('Error creating portal session:', err);
       return null;
-    }
-  },
-
-  // Função para atualizar manualmente o status da assinatura (útil para testes)
-  async updateSubscriptionStatus(establishmentId: string, status: string, plan: string, amount: number): Promise<boolean> {
-    try {
-      const { data, error } = await supabase.functions.invoke('stripe-subscription', {
-        body: {
-          action: 'update_subscription_status',
-          data: { establishmentId, status, plan, amount }
-        }
-      });
-
-      if (error) {
-        console.error('Erro ao atualizar status da assinatura:', error);
-        return false;
-      }
-
-      return data?.updated || false;
-    } catch (err) {
-      console.error('Erro ao atualizar status da assinatura:', err);
-      return false;
     }
   }
 };

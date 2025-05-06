@@ -1,86 +1,210 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Session, User } from '@supabase/supabase-js';
+import { useToast } from '@/hooks/use-toast';
+import { subscriptionService, SubscriptionInfo } from '@/services/subscriptionService';
+import { useNavigate } from 'react-router-dom';
 
-export const useAuth = () => {
-  const navigate = useNavigate();
+interface AuthContextType {
+  session: Session | null;
+  user: User | null;
+  signIn: (email: string, password: string) => Promise<{
+    error: Error | null;
+    data: Session | null;
+  }>;
+  signUp: (email: string, password: string, name: string) => Promise<{
+    error: Error | null;
+    data: Session | null;
+  }>;
+  signOut: () => Promise<void>;
+  loading: boolean;
+  subscription: SubscriptionInfo | null;
+  checkSubscription: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
   const { toast } = useToast();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
+  useEffect(() => {
+    const initAuth = async () => {
       setLoading(true);
       
-      const { error } = await supabase.auth.signInWithPassword({
+      // Verificar sessão atual
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      setUser(session?.user || null);
+      
+      // Configurar listener para mudanças na autenticação
+      const { data: authListener } = supabase.auth.onAuthStateChange(
+        async (_event, session) => {
+          setSession(session);
+          setUser(session?.user || null);
+          
+          if (session?.user) {
+            await checkSubscription();
+          }
+        }
+      );
+      
+      if (session?.user) {
+        await checkSubscription();
+      }
+      
+      setLoading(false);
+      
+      return () => {
+        authListener.subscription.unsubscribe();
+      };
+    };
+    
+    initAuth();
+  }, []);
+  
+  const checkSubscription = async () => {
+    try {
+      const subscriptionData = await subscriptionService.checkSubscription();
+      setSubscription(subscriptionData);
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    }
+  };
+
+  const signIn = async (email: string, password: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) throw error;
       
-      toast({
-        title: "Login realizado com sucesso",
-        description: "Bem-vindo ao MenuTotem!",
-      });
+      if (data.session) {
+        setSession(data.session);
+        setUser(data.session.user);
+        await checkSubscription();
+        
+        toast({
+          title: "Login realizado com sucesso",
+          description: `Bem-vindo de volta!`,
+        });
+        
+        navigate('/dashboard');
+      }
       
-      navigate("/dashboard");
+      return { data: data.session, error: null };
     } catch (error: any) {
-      console.error("Erro ao fazer login:", error);
+      let errorMessage = "Falha ao fazer login";
+      
+      if (error.message.includes("Invalid login")) {
+        errorMessage = "Email ou senha incorretos";
+      } else if (error.message.includes("Email not confirmed")) {
+        errorMessage = "Por favor, confirme seu email antes de fazer login";
+      }
+      
       toast({
-        title: "Erro ao fazer login",
-        description: error.message || "Verifique suas credenciais e tente novamente",
+        title: "Erro de autenticação",
+        description: errorMessage,
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
+      
+      return { data: null, error };
     }
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const signUp = async (email: string, password: string, name: string) => {
     try {
-      setLoading(true);
-      
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin,
+          data: {
+            name,
+          },
         },
       });
       
       if (error) throw error;
       
-      toast({
-        title: "Cadastro realizado com sucesso",
-        description: "Verifique seu email para confirmar o cadastro",
-      });
+      if (data.session) {
+        setSession(data.session);
+        setUser(data.session.user);
+        
+        toast({
+          title: "Conta criada com sucesso",
+          description: `Bem-vindo ao MenuTotem!`,
+        });
+        
+        navigate('/dashboard');
+      } else {
+        toast({
+          title: "Verificação de email",
+          description: "Um link de confirmação foi enviado para o seu email",
+        });
+      }
+      
+      return { data: data.session, error: null };
     } catch (error: any) {
-      console.error("Erro ao registrar:", error);
+      let errorMessage = "Falha ao criar conta";
+      
+      if (error.message.includes("User already registered")) {
+        errorMessage = "Este email já está cadastrado";
+      } else if (error.message.includes("Password")) {
+        errorMessage = "A senha deve ter pelo menos 6 caracteres";
+      }
+      
       toast({
-        title: "Erro ao registrar",
-        description: error.message || "Não foi possível criar sua conta",
+        title: "Erro no cadastro",
+        description: errorMessage,
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
+      
+      return { data: null, error };
     }
   };
 
-  return {
-    email,
-    setEmail,
-    password,
-    setPassword,
-    loading,
-    handleLogin,
-    handleRegister
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    setUser(null);
+    setSubscription(null);
+    navigate('/auth');
+    
+    toast({
+      title: "Logout realizado",
+      description: "Você foi desconectado com sucesso",
+    });
   };
+
+  const contextValue: AuthContextType = {
+    session,
+    user,
+    signIn,
+    signUp,
+    signOut,
+    loading,
+    subscription,
+    checkSubscription,
+  };
+
+  return (
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
