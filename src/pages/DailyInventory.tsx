@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,12 +43,14 @@ const DailyInventory = () => {
       const { data: establishmentData, error: establishmentError } = await supabase
         .from('establishments')
         .select('id')
-        .limit(1)
-        .single();
+        .limit(1);
       
       if (establishmentError) throw establishmentError;
+      if (!establishmentData || establishmentData.length === 0) {
+        throw new Error("No establishment found");
+      }
       
-      const establishmentId = establishmentData.id;
+      const establishmentId = establishmentData[0].id;
       
       // Check if there's already a daily inventory for today
       const today = new Date().toISOString().split('T')[0];
@@ -87,14 +90,16 @@ const DailyInventory = () => {
         
         if (productsError) throw productsError;
         
-        dailyProducts = productsData.map((item) => ({
-          id: item.products.id,
-          name: item.products.name,
-          available: item.available,
-          initial_stock: item.initial_stock,
-          minimum_stock: item.minimum_stock,
-          out_of_stock: item.products.out_of_stock
-        }));
+        if (productsData) {
+          dailyProducts = productsData.map((item) => ({
+            id: item.products.id,
+            name: item.products.name,
+            available: item.available,
+            initial_stock: item.initial_stock,
+            minimum_stock: item.minimum_stock,
+            out_of_stock: item.products.out_of_stock
+          }));
+        }
         
       } else {
         // No inventory yet, create a new one
@@ -105,12 +110,15 @@ const DailyInventory = () => {
             date: today,
             register_opened: false
           })
-          .select()
-          .single();
+          .select();
         
         if (newInventoryError) throw newInventoryError;
         
-        inventory = newInventory;
+        if (!newInventory || newInventory.length === 0) {
+          throw new Error("Failed to create new inventory");
+        }
+        
+        inventory = newInventory[0];
         setDailyInventoryId(inventory.id);
         setRegisterOpened(false);
         
@@ -121,11 +129,18 @@ const DailyInventory = () => {
         
         if (productsError) throw productsError;
         
+        if (!allProducts || allProducts.length === 0) {
+          // No products found, just set empty array
+          setProducts([]);
+          setLoading(false);
+          return;
+        }
+        
         // Create daily products entries for all products
         const dailyProductsToInsert = allProducts.map((product) => ({
           daily_inventory_id: inventory.id,
           product_id: product.id,
-          available: !product.out_of_stock, // Now this should work with the updated query
+          available: !product.out_of_stock,
           initial_stock: null,
           minimum_stock: null
         }));
@@ -142,7 +157,7 @@ const DailyInventory = () => {
         dailyProducts = allProducts.map((product) => ({
           id: product.id,
           name: product.name,
-          available: !product.out_of_stock, // Now this should work with the updated query
+          available: !product.out_of_stock,
           initial_stock: null,
           minimum_stock: null,
           out_of_stock: product.out_of_stock
@@ -185,7 +200,13 @@ const DailyInventory = () => {
       setSaving(true);
       
       if (!dailyInventoryId) {
-        throw new Error("No daily inventory ID");
+        toast({
+          title: "Erro",
+          description: "ID do inventário não encontrado. Tente recarregar a página.",
+          variant: "destructive",
+        });
+        setSaving(false);
+        return;
       }
       
       // Update register_opened status
@@ -204,6 +225,10 @@ const DailyInventory = () => {
         .eq('daily_inventory_id', dailyInventoryId);
       
       if (fetchError) throw fetchError;
+      
+      if (!existingProducts) {
+        throw new Error("Failed to fetch existing products");
+      }
       
       // Create a map for quick lookup
       const productMap = new Map();
