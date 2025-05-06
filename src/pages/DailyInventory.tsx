@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { formatDate } from "@/utils/format";
+import { PageHeader } from "@/components/PageHeader";
 
 interface Product {
   id: string;
@@ -16,7 +16,7 @@ interface Product {
   available: boolean;
   initial_stock: number | null;
   minimum_stock: number | null;
-  out_of_stock?: boolean; // Add this property to the interface
+  out_of_stock?: boolean;
 }
 
 const DailyInventory = () => {
@@ -255,7 +255,10 @@ const DailyInventory = () => {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-6">
-        <h1 className="text-3xl font-bold mb-6">Controle de Estoque Diário</h1>
+        <PageHeader 
+          title="Controle de Estoque Diário" 
+          currentPage="Estoque Diário"
+        />
         <div className="text-center py-10">Carregando dados...</div>
       </div>
     );
@@ -263,10 +266,11 @@ const DailyInventory = () => {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <h1 className="text-3xl font-bold mb-6">Controle de Estoque Diário</h1>
-      <p className="text-muted-foreground mb-6">
-        Data: {formatDate(date)} - Configure os produtos disponíveis para venda hoje.
-      </p>
+      <PageHeader 
+        title="Controle de Estoque Diário" 
+        description={`Data: ${formatDate(date)} - Configure os produtos disponíveis para venda hoje.`}
+        currentPage="Estoque Diário"
+      />
       
       <Card className="mb-8">
         <CardHeader>

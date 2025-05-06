@@ -1,12 +1,19 @@
 
-import { useState, useEffect } from "react";
-import { PricingPlans } from "@/components/subscription/PricingPlans";
+import { PageHeader } from "@/components/PageHeader";
 
 const Subscription = () => {
   return (
     <div className="container mx-auto px-4 py-6">
-      <h1 className="text-3xl font-bold mb-6">Planos e Assinaturas</h1>
-      <PricingPlans />
+      <PageHeader 
+        title="Planos e Assinaturas" 
+        description="Gerencie ou atualize seu plano de assinatura"
+        currentPage="Planos e Assinaturas"
+      />
+      
+      {/* Conteúdo existente da página */}
+      <div className="grid gap-6">
+        {/* Componentes de assinatura */}
+      </div>
     </div>
   );
 };
