@@ -9,6 +9,7 @@ import { useProductForm } from "@/hooks/useProductForm";
 import { ProductBasicInfo } from "@/components/product/ProductBasicInfo";
 import { ProductCategorySelector } from "@/components/product/ProductCategorySelector";
 import { ProductImagePreview } from "@/components/product/ProductImagePreview";
+import { ProductAvailabilityToggle } from "@/components/product/ProductAvailabilityToggle";
 
 interface ProductFormProps {
   product: Product | null;
@@ -32,6 +33,7 @@ export const ProductForm = ({ product, onSubmit, onCancel }: ProductFormProps) =
               <div className="space-y-6">
                 <ProductBasicInfo form={form} />
                 <ProductCategorySelector form={form} />
+                <ProductAvailabilityToggle form={form} />
               </div>
 
               <ProductImagePreview form={form} previewImage={previewImage} />

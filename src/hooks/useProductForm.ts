@@ -22,6 +22,7 @@ const productSchema = z.object({
   categoryId: z.string().min(1, {
     message: "Por favor, selecione uma categoria",
   }),
+  outOfStock: z.boolean().default(false),
 });
 
 export type ProductFormValues = z.infer<typeof productSchema>;
@@ -39,6 +40,7 @@ export const useProductForm = (product: Product | null, onSubmit: (product: Prod
           price: product.price,
           image: product.image,
           categoryId: product.categoryId,
+          outOfStock: product.outOfStock || false,
         }
       : {
           name: "",
@@ -46,6 +48,7 @@ export const useProductForm = (product: Product | null, onSubmit: (product: Prod
           price: 0,
           image: "https://placeholder.pics/svg/300x200/DEDEDE/555555/Imagem%20do%20Produto",
           categoryId: "",
+          outOfStock: false,
         },
   });
 
@@ -71,7 +74,7 @@ export const useProductForm = (product: Product | null, onSubmit: (product: Prod
       price: values.price,
       image: values.image,
       categoryId: values.categoryId,
-      outOfStock: product?.outOfStock || false,
+      outOfStock: values.outOfStock,
     });
   };
 
