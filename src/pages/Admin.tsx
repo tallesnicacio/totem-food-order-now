@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -5,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { RestaurantManagement } from "@/components/admin/RestaurantManagement";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { CommunityQRManagement } from "@/components/admin/CommunityQRManagement";
-import { BillingOverview } from "@/components/admin/BillingOverview";
+import { BillingOverview } from "@/components/admin/billing/BillingOverview";
 import { PlansManagement } from "@/components/admin/plans/PlansManagement";
 import { supabase } from "@/integrations/supabase/client";
 
