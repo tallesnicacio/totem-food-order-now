@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar,
@@ -23,17 +23,26 @@ import {
   ChefHat, 
   QrCode, 
   Monitor, 
-  DollarSign, 
   Package, 
-  LogOut 
+  LogOut,
+  Shield
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { user } = useAuth();
+  
+  // Definir usuários administradores do sistema
+  const isSystemAdmin = user?.email && (
+    user.email === "admin@menutoten.com" || 
+    user.email === "contato@matheusgusso.com" || 
+    user.email === "dev@menutoten.com"
+  );
 
   const menuItems = [
     {
@@ -72,21 +81,24 @@ export function AppSidebar() {
       icon: QrCode
     },
     {
-      title: "Assinatura",
-      url: "/subscription",
-      icon: DollarSign
-    },
-    {
       title: "Configurações",
       url: "/settings",
       icon: Settings
     }
   ];
+  
+  // Adiciona item de menu de administração do sistema apenas para administradores
+  if (isSystemAdmin) {
+    menuItems.push({
+      title: "Administração do Sistema",
+      url: "/system-admin",
+      icon: Shield
+    });
+  }
 
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
-      // Integrar com o supabase quando tiver auth
       const { error } = await supabase.auth.signOut();
       
       if (error) throw error;
