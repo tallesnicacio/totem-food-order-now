@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -8,50 +8,50 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 20%;
+    --foreground: 0 0% 7%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 20%;
+    --card-foreground: 0 0% 7%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 20%;
+    --popover-foreground: 0 0% 7%;
 
-    --primary: 123 41% 49%; /* Green */
+    --primary: 24 100% 50%; /* Orange #ff6600 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 36 100% 50%; /* Orange */
-    --secondary-foreground: 0 0% 20%;
+    --secondary: 24 100% 45%; /* Dark Orange #e55c00 */
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    --muted-foreground: 0 0% 46%;
 
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 20%;
+    --accent: 0 0% 97%;
+    --accent-foreground: 0 0% 7%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 123 41% 49%;
+    --border: 0 0% 88%; /* #e0e0e0 */
+    --input: 0 0% 88%;
+    --ring: 24 100% 50%;
 
     --radius: 0.75rem;
   }
 
   .dark {
-    --background: 0 0% 20%;
+    --background: 0 0% 7%;
     --foreground: 0 0% 98%;
 
-    --card: 0 0% 20%;
+    --card: 0 0% 7%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 20%;
+    --popover: 0 0% 7%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 123 41% 49%;
+    --primary: 24 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 36 100% 50%;
+    --secondary: 24 100% 45%;
     --secondary-foreground: 0 0% 98%;
 
     --muted: 0 0% 30%;
@@ -65,7 +65,7 @@
 
     --border: 0 0% 30%;
     --input: 0 0% 30%;
-    --ring: 123 41% 49%;
+    --ring: 24 100% 50%;
 
     --sidebar-background: 0 0% 15%;
     --sidebar-foreground: 0 0% 98%;
@@ -82,23 +82,74 @@
     font-family: 'Inter', sans-serif;
   }
 
+  h1 {
+    @apply text-hero font-extrabold;
+  }
+
+  h2 {
+    @apply text-section font-bold;
+  }
+
+  p {
+    @apply text-base md:text-lg;
+  }
+
+  .subtitle {
+    @apply text-xl text-menutotem-text-light;
+  }
+
+  /* MenuTotem Button Styles */
+  .btn-primary {
+    @apply bg-menutotem-primary text-white hover:bg-menutotem-primary-dark rounded-lg font-semibold transition-colors;
+  }
+  
+  .btn-outline {
+    @apply border-2 border-menutotem-primary text-menutotem-primary bg-transparent hover:bg-menutotem-primary hover:text-white rounded-lg font-semibold transition-colors;
+  }
+
+  /* MenuTotem Card Styles */
+  .card-menutotem {
+    @apply bg-white rounded-xl p-8 md:p-10 shadow-card;
+  }
+
+  .section-gray {
+    @apply bg-menutotem-bg-gray;
+  }
+
+  /* Totem button styles */
   .totem-button {
-    @apply rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+    @apply rounded-lg font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
   }
   
   .totem-button-primary {
-    @apply totem-button bg-primary text-primary-foreground hover:bg-primary/90;
+    @apply totem-button bg-menutotem-primary text-white hover:bg-menutotem-primary-dark;
   }
   
   .totem-button-secondary {
-    @apply totem-button bg-secondary text-secondary-foreground hover:bg-secondary/90;
+    @apply totem-button bg-menutotem-primary-dark text-white hover:bg-menutotem-primary/90;
   }
 
+  /* Card styles */
   .totem-card {
-    @apply rounded-xl border bg-card text-card-foreground shadow-sm transition-all;
+    @apply rounded-xl border bg-card text-card-foreground shadow-card transition-all;
   }
 
   .totem-card-interactive {
     @apply totem-card hover:shadow-md hover:-translate-y-1 cursor-pointer;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  h1 {
+    @apply text-4xl; /* 36px on mobile */
+  }
+
+  .flex-row {
+    @apply flex-col;
+  }
+
+  .flex-container > * {
+    @apply w-full mb-4;
   }
 }

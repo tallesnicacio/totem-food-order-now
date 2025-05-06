@@ -63,18 +63,39 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom colors for MenuTotem
-				"menutotem": {
-					green: "#4CAF50",
-					orange: "#FF9800",
-					gray: "#F5F5F5",
-					"dark-gray": "#333333",
+				// MenuTotem color palette
+				menutotem: {
+					primary: "#ff6600",      // Orange (Primary)
+					"primary-dark": "#e55c00", // Dark Orange (Hover)
+					text: "#121212",         // Dark Gray (Main text)
+					"text-light": "#757575", // Light Gray (Subtitles)
+					border: "#e0e0e0",       // Very Light Gray (Borders)
+					white: "#ffffff",        // White (Background)
+					"bg-gray": "#f8f9fa",    // Gray Section Background
 				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
+			},
+			fontFamily: {
+				// Add Inter as primary font with fallbacks
+				sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Open Sans', 'Helvetica Neue', 'sans-serif'],
+			},
+			fontSize: {
+				// Additional custom font sizes
+				'hero': '48px',     // h1 hero-title
+				'section': '36px',  // h2 section-title
+			},
+			fontWeight: {
+				medium: '500',
+				semibold: '600',
+				bold: '700',
+				extrabold: '800',
+			},
+			boxShadow: {
+				'card': '0 4px 20px rgba(0, 0, 0, 0.05)',
 			},
 			keyframes: {
 				'accordion-down': {
