@@ -4,29 +4,29 @@ project_id = "jstwhvchwdrwkzgdfgvt"
 [api]
 enabled = true
 port = 54321
-schemas = ["public", "storage", "graphql_public"]
+schemas = ["public", "storage"]
 
 [db]
 port = 54322
-shadow_port = 54320
-major_version = 15
 
 [studio]
 enabled = true
 port = 54323
-api_url = "http://localhost:54321"
+api_url = "http://localhost"
 
 [inbucket]
 enabled = true
 port = 54324
 
-[auth]
-enabled = true
-site_url = "http://localhost:3000"
-
 [storage]
 enabled = true
 
-[[functions]]
-name = "subscription_plans"
-verify_jwt = true
+[auth]
+enabled = true
+
+[realtime]
+enabled = true
+
+[functions]
+check_subscription = { verify_jwt = true }
+stripe_subscription = { verify_jwt = true }

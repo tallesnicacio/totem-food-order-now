@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { formatCurrency } from "@/utils/format";
+import { subscriptionService } from "@/services/subscriptionService";
 
 type PlanFeature = {
   name: string;
@@ -26,11 +28,19 @@ type PricingPlan = {
 export const PricingPlans = () => {
   const [plans, setPlans] = useState<PricingPlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processingPlan, setProcessingPlan] = useState<string | null>(null);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+    };
+
+    checkAuth();
     fetchPlans();
   }, []);
 
@@ -78,28 +88,29 @@ export const PricingPlans = () => {
   };
 
   const handleSelectPlan = async (planId: string) => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login necessário",
+        description: "Faça login para assinar um plano.",
+        variant: "destructive",
+      });
+      navigate('/auth');
+      return;
+    }
+
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      setProcessingPlan(planId);
+      const checkoutUrl = await subscriptionService.createCheckoutSession(planId);
       
-      if (!session) {
+      if (checkoutUrl) {
+        window.location.href = checkoutUrl;
+      } else {
         toast({
-          title: "Login necessário",
-          description: "Faça login para assinar um plano.",
+          title: "Erro",
+          description: "Não foi possível iniciar o processo de assinatura.",
           variant: "destructive",
         });
-        navigate('/auth');
-        return;
       }
-
-      // Here you would integrate with a payment provider like Stripe
-      // For now, we'll just show a success message
-      toast({
-        title: "Plano selecionado",
-        description: "Você será redirecionado para finalizar sua assinatura.",
-      });
-
-      // In a real implementation, redirect to checkout or update subscription in database
-      // navigate('/checkout');
     } catch (error) {
       console.error("Error selecting plan:", error);
       toast({
@@ -107,11 +118,16 @@ export const PricingPlans = () => {
         description: "Não foi possível selecionar o plano.",
         variant: "destructive",
       });
+    } finally {
+      setProcessingPlan(null);
     }
   };
 
   if (loading) {
-    return <div className="text-center py-10">Carregando planos...</div>;
+    return <div className="text-center py-10">
+      <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+      <p className="mt-2">Carregando planos...</p>
+    </div>;
   }
 
   return (
@@ -184,8 +200,16 @@ export const PricingPlans = () => {
                 className="w-full" 
                 variant={plan.isPopular ? "default" : "outline"}
                 onClick={() => handleSelectPlan(plan.id)}
+                disabled={processingPlan === plan.id}
               >
-                {plan.price === 0 ? 'Começar Agora' : 'Assinar Plano'}
+                {processingPlan === plan.id ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  plan.price === 0 ? 'Começar Agora' : 'Assinar Plano'
+                )}
               </Button>
             </CardFooter>
           </Card>
