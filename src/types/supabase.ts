@@ -22,6 +22,7 @@ export const mapProductFromDB = (product: ProductRow): Product => ({
   price: Number(product.price),
   image: product.image,
   categoryId: product.category_id,
+  outOfStock: product.out_of_stock,
 });
 
 export const mapOrderFromDB = (order: OrderRow): OrderSummary => ({

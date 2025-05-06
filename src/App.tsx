@@ -18,6 +18,7 @@ import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import DailyInventory from "./pages/DailyInventory";
 import Subscription from "./pages/Subscription";
+import Products from "./pages/Products";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/daily-inventory" element={<DailyInventory />} />
           <Route path="/subscription" element={<Subscription />} />
+          <Route path="/products" element={<Products />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <BackToHomeButton />

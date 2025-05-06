@@ -1,203 +1,137 @@
 
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChefHat, ClipboardList, LayoutDashboard, QrCode, Settings, Utensils, Users, PackageOpen, LogOut } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
 
 const Index = () => {
-  const [user, setUser] = useState<any>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // Check if user is logged in
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        navigate('/auth');
-        return;
-      }
-      
-      setUser(session.user);
-      
-      // Get user role if user is logged in
-      try {
-        const { data, error } = await supabase.rpc('get_user_role');
-        
-        if (error) throw error;
-        
-        setUserRole(data || null);
-      } catch (error) {
-        console.error("Error getting user role:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    checkSession();
-    
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!session) {
-          navigate('/auth');
-        } else {
-          setUser(session.user);
-        }
-      }
-    );
-    
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate]);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/auth');
-  };
-
-  if (loading) {
-    return (
-      <div className="container mx-auto py-8 px-4">
-        <h1 className="text-4xl font-bold text-center mb-2">MenuTotem</h1>
-        <p className="text-center text-muted-foreground mb-8">
-          Sistema de cardápio digital e gestão de pedidos
-        </p>
-        <div className="text-center py-10">Carregando...</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-4xl font-bold mb-2">MenuTotem</h1>
-          <p className="text-muted-foreground">
-            Sistema de cardápio digital e gestão de pedidos
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <p className="font-medium">{user?.email}</p>
-            <p className="text-sm text-muted-foreground">
-              {userRole === 'master' ? 'Administrador Master' : 
-              userRole === 'admin' ? 'Administrador' : 
-              userRole === 'manager' ? 'Gerente' : 
-              userRole === 'kitchen' ? 'Cozinha' : 'Usuário'}
-            </p>
-          </div>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="h-4 w-4 mr-2" /> Sair
-          </Button>
-        </div>
+    <div className="container mx-auto py-12 px-4">
+      <header className="text-center mb-12">
+        <h1 className="text-4xl font-bold mb-4">MenuTotem</h1>
+        <p className="text-xl text-muted-foreground">
+          Solução de autoatendimento digital para foodtrucks e eventos gastronômicos
+        </p>
+      </header>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        <Link to="/totem">
+          <Card className="h-full hover:shadow-md transition-shadow">
+            <CardContent className="p-6 flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                <span className="text-2xl">🖥️</span>
+              </div>
+              <h2 className="text-xl font-bold mb-2">Totem</h2>
+              <p className="text-center text-muted-foreground">
+                Modo totem para autoatendimento
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to="/qrcode">
+          <Card className="h-full hover:shadow-md transition-shadow">
+            <CardContent className="p-6 flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                <span className="text-2xl">📱</span>
+              </div>
+              <h2 className="text-xl font-bold mb-2">QR Code</h2>
+              <p className="text-center text-muted-foreground">
+                Cardápio via QR Code para mesas
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to="/kitchen">
+          <Card className="h-full hover:shadow-md transition-shadow">
+            <CardContent className="p-6 flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                <span className="text-2xl">👨‍🍳</span>
+              </div>
+              <h2 className="text-xl font-bold mb-2">Cozinha</h2>
+              <p className="text-center text-muted-foreground">
+                Painel da cozinha para gerenciar pedidos
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <LinkCard
-          to="/totem"
-          title="Menu Totem"
-          description="Visualize o cardápio em modo totem para pedidos no local"
-          icon={<Utensils className="h-6 w-6" />}
-        />
-        
-        <LinkCard
-          to="/qrcode"
-          title="Menu QR Code"
-          description="Cardápio digital para acesso via QR Code"
-          icon={<QrCode className="h-6 w-6" />}
-        />
-        
-        <LinkCard
-          to="/qr-generator"
-          title="Gerador de QR Code"
-          description="Gere QR Codes para as mesas do restaurante"
-          icon={<QrCode className="h-6 w-6" />}
-        />
-        
-        <LinkCard
-          to="/kitchen"
-          title="Cozinha"
-          description="Acompanhe e gerencie pedidos na cozinha"
-          icon={<ChefHat className="h-6 w-6" />}
-        />
-        
-        <LinkCard
-          to="/dashboard"
-          title="Dashboard"
-          description="Painel administrativo com estatísticas e gerenciamento"
-          icon={<LayoutDashboard className="h-6 w-6" />}
-        />
-        
-        <LinkCard
-          to="/settings"
-          title="Configurações"
-          description="Configure opções do restaurante e do sistema"
-          icon={<Settings className="h-6 w-6" />}
-        />
-        
-        <LinkCard
-          to="/daily-inventory"
-          title="Estoque Diário"
-          description="Gerencie a disponibilidade de produtos e abra o caixa"
-          icon={<PackageOpen className="h-6 w-6" />}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <Link to="/dashboard">
+          <Card className="h-full hover:shadow-md transition-shadow">
+            <CardContent className="p-6 flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                <span className="text-2xl">📊</span>
+              </div>
+              <h2 className="text-xl font-bold mb-2">Dashboard</h2>
+              <p className="text-center text-muted-foreground">
+                Visualize estatísticas e métricas
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        <LinkCard
-          to="/subscription"
-          title="Planos e Assinaturas"
-          description="Gerencie ou atualize seu plano de assinatura"
-          icon={<ClipboardList className="h-6 w-6" />}
-        />
+        <Link to="/products">
+          <Card className="h-full hover:shadow-md transition-shadow">
+            <CardContent className="p-6 flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                <span className="text-2xl">🍔</span>
+              </div>
+              <h2 className="text-xl font-bold mb-2">Produtos</h2>
+              <p className="text-center text-muted-foreground">
+                Gerencie seu cardápio e produtos
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
 
-        {(userRole === 'master' || userRole === 'admin') && (
-          <LinkCard
-            to="/admin"
-            title="Controle Administrativo"
-            description="Gerencie restaurantes e liberações de funcionalidades"
-            icon={<Users className="h-6 w-6" />}
-          />
-        )}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Link to="/settings">
+          <Card className="h-full hover:shadow-md transition-shadow">
+            <CardContent className="p-6 flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                <span className="text-2xl">⚙️</span>
+              </div>
+              <h2 className="text-xl font-bold mb-2">Configurações</h2>
+              <p className="text-center text-muted-foreground">
+                Configure seu estabelecimento
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to="/daily-inventory">
+          <Card className="h-full hover:shadow-md transition-shadow">
+            <CardContent className="p-6 flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                <span className="text-2xl">📦</span>
+              </div>
+              <h2 className="text-xl font-bold mb-2">Estoque Diário</h2>
+              <p className="text-center text-muted-foreground">
+                Gerencie a disponibilidade de produtos
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link to="/subscription">
+          <Card className="h-full hover:shadow-md transition-shadow">
+            <CardContent className="p-6 flex flex-col items-center">
+              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                <span className="text-2xl">💳</span>
+              </div>
+              <h2 className="text-xl font-bold mb-2">Assinatura</h2>
+              <p className="text-center text-muted-foreground">
+                Gerenciar planos e pagamentos
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
     </div>
   );
 };
-
-const LinkCard = ({ 
-  to, 
-  title, 
-  description, 
-  icon 
-}: { 
-  to: string; 
-  title: string; 
-  description: string; 
-  icon: React.ReactNode;
-}) => (
-  <Link to={to}>
-    <Card className="h-full hover:bg-muted/50 transition-colors">
-      <CardHeader className="flex flex-row items-center gap-4">
-        <div className="bg-primary/10 p-2 rounded-md">
-          {icon}
-        </div>
-        <div>
-          <CardTitle>{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
-        </div>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <Button variant="outline" className="w-full">
-          Acessar
-        </Button>
-      </CardContent>
-    </Card>
-  </Link>
-);
 
 export default Index;

@@ -6,6 +6,7 @@ export interface Product {
   price: number;
   image: string;
   categoryId: string;
+  outOfStock?: boolean;
 }
 
 export interface Category {
