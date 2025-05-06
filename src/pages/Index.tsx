@@ -149,6 +149,13 @@ const Index = () => {
           icon={<PackageOpen className="h-6 w-6" />}
         />
 
+        <LinkCard
+          to="/subscription"
+          title="Planos e Assinaturas"
+          description="Gerencie ou atualize seu plano de assinatura"
+          icon={<ClipboardList className="h-6 w-6" />}
+        />
+
         {(userRole === 'master' || userRole === 'admin') && (
           <LinkCard
             to="/admin"

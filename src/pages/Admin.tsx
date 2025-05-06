@@ -7,6 +7,7 @@ import { RestaurantManagement } from "@/components/admin/RestaurantManagement";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { CommunityQRManagement } from "@/components/admin/CommunityQRManagement";
 import { BillingOverview } from "@/components/admin/BillingOverview";
+import { PlansManagement } from "@/components/admin/PlansManagement";
 import { supabase } from "@/integrations/supabase/client";
 
 // Add the AdminRestaurant interface
@@ -31,6 +32,33 @@ export interface AdminRestaurant {
     analytics: boolean;
     multiLocation: boolean;
   };
+}
+
+// Define subscription plan types
+export type PlanType = 'free' | 'basic' | 'premium' | 'enterprise';
+
+// Define subscription plan features
+export interface PlanFeatures {
+  maxProducts: number;
+  maxUsers: number;
+  customization: boolean;
+  qrCommunity: boolean;
+  offlineMode: boolean;
+  paymentIntegration: boolean;
+  notifications: boolean;
+  analytics: boolean;
+  multiLocation: boolean;
+}
+
+// Define subscription plan
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  type: PlanType;
+  price: number;
+  billingCycle: 'monthly' | 'yearly';
+  features: PlanFeatures;
+  isPopular?: boolean;
 }
 
 const Admin = () => {
@@ -98,11 +126,12 @@ const Admin = () => {
       <h1 className="text-3xl font-bold mb-6">Painel Administrativo Master</h1>
       
       <Tabs defaultValue="restaurants" className="space-y-4">
-        <TabsList className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <TabsList className="grid grid-cols-2 md:grid-cols-5 gap-2">
           <TabsTrigger value="restaurants">Restaurantes</TabsTrigger>
           <TabsTrigger value="users">Usuários</TabsTrigger>
           <TabsTrigger value="qrcodes">QR Codes Comunitários</TabsTrigger>
           <TabsTrigger value="billing">Faturamento</TabsTrigger>
+          <TabsTrigger value="plans">Planos</TabsTrigger>
         </TabsList>
         
         <TabsContent value="restaurants">
@@ -119,6 +148,10 @@ const Admin = () => {
         
         <TabsContent value="billing">
           <BillingOverview />
+        </TabsContent>
+        
+        <TabsContent value="plans">
+          <PlansManagement />
         </TabsContent>
       </Tabs>
     </div>
