@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,7 +6,7 @@ import { RestaurantManagement } from "@/components/admin/RestaurantManagement";
 import { UserManagement } from "@/components/admin/UserManagement";
 import { CommunityQRManagement } from "@/components/admin/CommunityQRManagement";
 import { BillingOverview } from "@/components/admin/BillingOverview";
-import { PlansManagement } from "@/components/admin/PlansManagement";
+import { PlansManagement } from "@/components/admin/plans/PlansManagement";
 import { supabase } from "@/integrations/supabase/client";
 
 // Add the AdminRestaurant interface
