@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CardContent, CardFooter } from "@/components/ui/card";
+import { useState } from "react";
 
 interface RegisterFormProps {
   email: string;
@@ -21,9 +22,27 @@ export const RegisterForm = ({
   loading,
   handleRegister
 }: RegisterFormProps) => {
+  const [name, setName] = useState("");
+  
+  const onSubmit = (e: React.FormEvent) => {
+    // Store name in localStorage to be accessed during registration
+    localStorage.setItem("registerName", name);
+    handleRegister(e);
+  };
+  
   return (
-    <form onSubmit={handleRegister}>
+    <form onSubmit={onSubmit}>
       <CardContent className="space-y-4 pt-4">
+        <div className="space-y-2">
+          <Label htmlFor="register-name">Nome</Label>
+          <Input 
+            id="register-name" 
+            placeholder="Seu nome" 
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
         <div className="space-y-2">
           <Label htmlFor="register-email">Email</Label>
           <Input 

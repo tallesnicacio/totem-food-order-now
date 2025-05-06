@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AuthHeader } from "@/components/auth/AuthHeader";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { RegisterForm } from "@/components/auth/RegisterForm";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthForm } from "@/hooks/useAuthForm";
 
 const Auth = () => {
   const { 
@@ -12,10 +12,12 @@ const Auth = () => {
     setEmail, 
     password, 
     setPassword, 
+    name,
+    setName,
     loading, 
     handleLogin, 
     handleRegister 
-  } = useAuth();
+  } = useAuthForm();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
