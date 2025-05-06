@@ -19,9 +19,10 @@ interface PageHeaderProps {
     href: string;
   }[];
   currentPage: string;
+  icon?: React.ReactNode;
 }
 
-export function PageHeader({ title, description, breadcrumbs = [], currentPage }: PageHeaderProps) {
+export function PageHeader({ title, description, breadcrumbs = [], currentPage, icon }: PageHeaderProps) {
   return (
     <div className="mb-6">
       <div className="flex items-center gap-2 mb-2">
@@ -65,9 +66,12 @@ export function PageHeader({ title, description, breadcrumbs = [], currentPage }
         </Breadcrumb>
       </div>
 
-      <div>
-        <h1 className="text-3xl font-bold">{title}</h1>
-        {description && <p className="text-muted-foreground mt-1">{description}</p>}
+      <div className="flex items-center gap-2">
+        {icon && <div className="flex-shrink-0">{icon}</div>}
+        <div>
+          <h1 className="text-3xl font-bold">{title}</h1>
+          {description && <p className="text-muted-foreground mt-1">{description}</p>}
+        </div>
       </div>
     </div>
   );
