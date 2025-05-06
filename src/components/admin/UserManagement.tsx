@@ -48,7 +48,7 @@ export const UserManagement = () => {
       if (error) throw error;
 
       setEstablishments(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching establishments:", error);
       toast({
         title: "Erro",
@@ -60,15 +60,22 @@ export const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
+      setLoading(true);
+      console.log("Fetching users...");
+      
       const { data: userProfiles, error: userProfilesError } = await supabase
         .from('user_profiles')
         .select(`
           *,
           establishments(name)
-        `)
-        .order('name');
+        `);
 
-      if (userProfilesError) throw userProfilesError;
+      if (userProfilesError) {
+        console.error("Error details:", userProfilesError);
+        throw userProfilesError;
+      }
+      
+      console.log("Fetched user data:", userProfiles);
 
       const mappedUsers = userProfiles.map((user: any) => ({
         id: user.id,
@@ -82,14 +89,15 @@ export const UserManagement = () => {
 
       setUsers(mappedUsers);
       setFilteredUsers(mappedUsers);
-      setLoading(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching users:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível carregar os usuários.",
+        description: "Não foi possível carregar os usuários: " + (error.message || error),
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -140,11 +148,11 @@ export const UserManagement = () => {
 
       setIsDialogOpen(false);
       fetchUsers();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving user:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível salvar o usuário.",
+        description: "Não foi possível salvar o usuário: " + (error.message || error),
         variant: "destructive",
       });
     }
@@ -169,11 +177,11 @@ export const UserManagement = () => {
         title: "Usuário removido",
         description: "O usuário foi removido com sucesso.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting user:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível remover o usuário.",
+        description: "Não foi possível remover o usuário: " + (error.message || error),
         variant: "destructive",
       });
     }
