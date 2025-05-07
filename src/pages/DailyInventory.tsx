@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { formatDate } from "@/utils/format";
 import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Product {
   id: string;
@@ -31,6 +32,7 @@ const DailyInventory = () => {
   const [showStockFields, setShowStockFields] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (user) {
@@ -44,7 +46,7 @@ const DailyInventory = () => {
       console.log("Fetching today's inventory...");
       
       // Get current establishment ID (in a real app, this would come from user context)
-      const { data: establishmentData, error: establishmentError } = await supabase
+      const { data, error: establishmentError } = await supabase
         .from('establishments')
         .select('id')
         .limit(1);
@@ -54,7 +56,9 @@ const DailyInventory = () => {
         throw establishmentError;
       }
       
-      if (!establishmentData || establishmentData.length === 0) {
+      let establishmentId;
+      
+      if (!data || data.length === 0) {
         console.warn("No establishment found, creating a default one");
         // Create a default establishment if none exists
         const { data: newEstablishment, error: newEstablishmentError } = await supabase
@@ -74,10 +78,11 @@ const DailyInventory = () => {
           throw new Error("Failed to create new establishment");
         }
         
-        establishmentData = newEstablishment;
+        establishmentId = newEstablishment[0].id;
+      } else {
+        establishmentId = data[0].id;
       }
       
-      const establishmentId = establishmentData[0].id;
       console.log("Using establishment ID:", establishmentId);
       
       // Check if there's already a daily inventory for today
@@ -394,12 +399,12 @@ const DailyInventory = () => {
       
       <Card className="mb-8">
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
             <div>
               <CardTitle>Status do Caixa</CardTitle>
               <CardDescription>Defina se o caixa está aberto ou fechado</CardDescription>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 mt-4 sm:mt-0">
               <Switch
                 id="register-status"
                 checked={registerOpened}
@@ -413,9 +418,9 @@ const DailyInventory = () => {
         </CardHeader>
       </Card>
       
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
         <h2 className="text-xl font-bold">Produtos Disponíveis Hoje</h2>
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="flex items-center space-x-2">
             <Checkbox
               id="show-stock"
@@ -434,8 +439,8 @@ const DailyInventory = () => {
         {products.map(product => (
           <Card key={product.id}>
             <CardContent className="pt-6">
-              <div className="flex justify-between items-center mb-2">
-                <div className="font-medium">{product.name}</div>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
+                <div className="font-medium mb-2 sm:mb-0">{product.name}</div>
                 <div className="flex items-center space-x-2">
                   <Switch
                     id={`product-${product.id}`}
@@ -450,7 +455,7 @@ const DailyInventory = () => {
               
               {showStockFields && (
                 <div className="mt-4 space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <Label htmlFor={`initial-stock-${product.id}`}>Estoque Inicial</Label>
                       <Input
