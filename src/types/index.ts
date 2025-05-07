@@ -7,6 +7,7 @@ export interface Product {
   image: string;
   categoryId: string;
   outOfStock?: boolean;
+  available?: boolean;
 }
 
 export interface Category {
@@ -28,6 +29,7 @@ export interface OrderSummary {
   tableId?: string;
   customerName?: string;
   status: 'new' | 'preparing' | 'ready' | 'delivered';
+  dayOrderNumber?: number;
   createdAt: Date;
   updatedAt: Date;
 }

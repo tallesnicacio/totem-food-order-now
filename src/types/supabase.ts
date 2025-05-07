@@ -23,6 +23,7 @@ export const mapProductFromDB = (product: ProductRow): Product => ({
   image: product.image,
   categoryId: product.category_id,
   outOfStock: product.out_of_stock,
+  available: product.available,
 });
 
 export const mapOrderFromDB = (order: OrderRow): OrderSummary => ({
@@ -32,6 +33,7 @@ export const mapOrderFromDB = (order: OrderRow): OrderSummary => ({
   tableId: order.table_id || undefined,
   customerName: order.customer_name || undefined,
   status: order.status as 'new' | 'preparing' | 'ready' | 'delivered',
+  dayOrderNumber: order.day_order_number,
   createdAt: new Date(order.created_at),
   updatedAt: new Date(order.updated_at),
 });

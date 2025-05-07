@@ -14,7 +14,6 @@ import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
-import DailyInventory from "./pages/DailyInventory";
 import Products from "./pages/Products";
 import SystemAdmin from "./pages/SystemAdmin";
 import { useAuth } from "./hooks/useAuth";
@@ -77,7 +76,6 @@ const AppRoutes = () => {
       {/* Protected routes - require authentication */}
       <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/products" element={<ProtectedRoute><AppLayout><Products /></AppLayout></ProtectedRoute>} />
-      <Route path="/daily-inventory" element={<ProtectedRoute><AppLayout><DailyInventory /></AppLayout></ProtectedRoute>} />
       <Route path="/qr-generator" element={<ProtectedRoute><AppLayout><QRGenerator /></AppLayout></ProtectedRoute>} />
       <Route path="/kitchen" element={<ProtectedRoute><AppLayout><Kitchen /></AppLayout></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />

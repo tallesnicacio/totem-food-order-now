@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { CartItem, OrderSummary } from "@/types";
 import { mapOrderFromDB } from "@/types/supabase";
@@ -11,7 +12,37 @@ export async function createOrder(
   tableId?: string
 ): Promise<OrderSummary | null> {
   try {
-    // 1. Create the order first
+    // Get the next sequential number for today's orders
+    const { data: dailyInventoryData, error: dailyInventoryError } = await supabase
+      .from('restaurant')
+      .select('establishment_id')
+      .limit(1)
+      .single();
+    
+    if (dailyInventoryError) {
+      console.error("Error fetching restaurant data:", dailyInventoryError);
+      throw dailyInventoryError;
+    }
+    
+    // Get current day order count
+    const today = new Date().toISOString().split('T')[0];
+    const { data: orderCountData, error: orderCountError } = await supabase
+      .from('orders')
+      .select('day_order_number')
+      .gte('created_at', today)
+      .lt('created_at', new Date(new Date(today).getTime() + 24 * 60 * 60 * 1000).toISOString())
+      .order('day_order_number', { ascending: false })
+      .limit(1);
+    
+    if (orderCountError) {
+      console.error("Error fetching order count:", orderCountError);
+      throw orderCountError;
+    }
+    
+    const nextOrderNumber = orderCountData && orderCountData.length > 0 ? 
+      (orderCountData[0].day_order_number || 0) + 1 : 1;
+    
+    // 1. Create the order with the sequential number
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert({
@@ -19,7 +50,8 @@ export async function createOrder(
         table_id: tableId,
         payment_method: paymentMethod,
         total: total,
-        status: 'new'
+        status: 'new',
+        day_order_number: nextOrderNumber
       })
       .select()
       .single();
@@ -49,6 +81,7 @@ export async function createOrder(
       tableId: orderData.table_id || undefined,
       customerName: orderData.customer_name || undefined,
       status: orderData.status as 'new' | 'preparing' | 'ready' | 'delivered',
+      dayOrderNumber: orderData.day_order_number,
       createdAt: new Date(orderData.created_at),
       updatedAt: new Date(orderData.updated_at)
     };
@@ -64,7 +97,7 @@ export async function createOrder(
   }
 }
 
-// Nova função para carregar todos os pedidos independentemente do status
+// Function to get all orders regardless of status
 export async function getAllOrders(): Promise<OrderSummary[]> {
   try {
     const { data, error } = await supabase
@@ -88,7 +121,9 @@ export async function getAllOrders(): Promise<OrderSummary[]> {
           description: item.products.description,
           price: Number(item.products.price),
           image: item.products.image,
-          categoryId: item.products.category_id
+          categoryId: item.products.category_id,
+          outOfStock: item.products.out_of_stock,
+          available: item.products.available
         },
         quantity: item.quantity,
         notes: item.notes
@@ -136,7 +171,9 @@ export async function getOrdersByStatus(status?: string): Promise<OrderSummary[]
           description: item.products.description,
           price: Number(item.products.price),
           image: item.products.image,
-          categoryId: item.products.category_id
+          categoryId: item.products.category_id,
+          outOfStock: item.products.out_of_stock,
+          available: item.products.available
         },
         quantity: item.quantity,
         notes: item.notes
@@ -171,6 +208,18 @@ export async function updateOrderStatus(orderId: string, status: 'new' | 'prepar
       description: "Não foi possível atualizar o status do pedido",
       variant: "destructive",
     });
+    return false;
+  }
+}
+
+// Function to reset order numbering when register is opened
+export async function resetOrderNumbering(): Promise<boolean> {
+  try {
+    // No direct reset needed - numbers will start from 1 automatically 
+    // when the first order is created after the register is opened
+    return true;
+  } catch (error) {
+    console.error("Error resetting order numbering:", error);
     return false;
   }
 }

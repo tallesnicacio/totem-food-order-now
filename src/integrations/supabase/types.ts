@@ -51,86 +51,6 @@ export type Database = {
         }
         Relationships: []
       }
-      daily_inventory: {
-        Row: {
-          created_at: string
-          date: string
-          establishment_id: string
-          id: string
-          register_opened: boolean
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          date?: string
-          establishment_id: string
-          id?: string
-          register_opened?: boolean
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          date?: string
-          establishment_id?: string
-          id?: string
-          register_opened?: boolean
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "daily_inventory_establishment_id_fkey"
-            columns: ["establishment_id"]
-            isOneToOne: false
-            referencedRelation: "establishments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      daily_products: {
-        Row: {
-          available: boolean
-          created_at: string
-          daily_inventory_id: string
-          id: string
-          initial_stock: number | null
-          minimum_stock: number | null
-          product_id: string
-        }
-        Insert: {
-          available?: boolean
-          created_at?: string
-          daily_inventory_id: string
-          id?: string
-          initial_stock?: number | null
-          minimum_stock?: number | null
-          product_id: string
-        }
-        Update: {
-          available?: boolean
-          created_at?: string
-          daily_inventory_id?: string
-          id?: string
-          initial_stock?: number | null
-          minimum_stock?: number | null
-          product_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "daily_products_daily_inventory_id_fkey"
-            columns: ["daily_inventory_id"]
-            isOneToOne: false
-            referencedRelation: "daily_inventory"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_products_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       establishment_qr_codes: {
         Row: {
           active: boolean
@@ -261,6 +181,7 @@ export type Database = {
         Row: {
           created_at: string
           customer_name: string | null
+          day_order_number: number | null
           id: string
           payment_method: string
           status: string
@@ -271,6 +192,7 @@ export type Database = {
         Insert: {
           created_at?: string
           customer_name?: string | null
+          day_order_number?: number | null
           id?: string
           payment_method: string
           status?: string
@@ -281,6 +203,7 @@ export type Database = {
         Update: {
           created_at?: string
           customer_name?: string | null
+          day_order_number?: number | null
           id?: string
           payment_method?: string
           status?: string
@@ -292,6 +215,7 @@ export type Database = {
       }
       products: {
         Row: {
+          available: boolean | null
           category_id: string
           description: string
           id: string
@@ -301,6 +225,7 @@ export type Database = {
           price: number
         }
         Insert: {
+          available?: boolean | null
           category_id: string
           description: string
           id?: string
@@ -310,6 +235,7 @@ export type Database = {
           price: number
         }
         Update: {
+          available?: boolean | null
           category_id?: string
           description?: string
           id?: string

@@ -8,12 +8,12 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { resetOrderNumbering } from "@/services/orderService";
 
 const Dashboard = () => {
   const [registerOpened, setRegisterOpened] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [dailyInventoryId, setDailyInventoryId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -24,63 +24,39 @@ const Dashboard = () => {
     try {
       setLoading(true);
       
-      // Get current establishment ID
-      const { data: establishmentData, error: establishmentError } = await supabase
-        .from('establishments')
-        .select('id')
+      // Get current restaurant config
+      const { data: restaurantData, error: restaurantError } = await supabase
+        .from('restaurant')
+        .select('*')
         .limit(1);
       
-      if (establishmentError) {
-        console.error("Error fetching establishment:", establishmentError);
-        throw establishmentError;
+      if (restaurantError) {
+        console.error("Error fetching restaurant:", restaurantError);
+        throw restaurantError;
       }
       
-      if (!establishmentData || establishmentData.length === 0) {
-        console.warn("No establishment found");
+      if (!restaurantData || restaurantData.length === 0) {
+        console.warn("No restaurant found");
         setLoading(false);
         return;
       }
       
-      const establishmentId = establishmentData[0].id;
-      
-      // Check if there's already a daily inventory for today
+      // Check if there are any orders for today - if yes, the register is open
       const today = new Date().toISOString().split('T')[0];
-      const { data: inventoryData, error: inventoryError } = await supabase
-        .from('daily_inventory')
-        .select('id, register_opened')
-        .eq('establishment_id', establishmentId)
-        .eq('date', today)
+      const { data: ordersData, error: ordersError } = await supabase
+        .from('orders')
+        .select('id')
+        .gte('created_at', today)
+        .lt('created_at', new Date(new Date(today).getTime() + 24 * 60 * 60 * 1000).toISOString())
         .limit(1);
       
-      if (inventoryError) {
-        console.error("Error fetching inventory:", inventoryError);
-        throw inventoryError;
+      if (ordersError) {
+        console.error("Error fetching orders:", ordersError);
+        throw ordersError;
       }
       
-      if (inventoryData && inventoryData.length > 0) {
-        setDailyInventoryId(inventoryData[0].id);
-        setRegisterOpened(inventoryData[0].register_opened);
-      } else {
-        // Create new inventory for today
-        const { data: newInventory, error: newInventoryError } = await supabase
-          .from('daily_inventory')
-          .insert({
-            establishment_id: establishmentId,
-            date: today,
-            register_opened: false
-          })
-          .select();
-        
-        if (newInventoryError) {
-          console.error("Error creating inventory:", newInventoryError);
-          throw newInventoryError;
-        }
-        
-        if (newInventory && newInventory.length > 0) {
-          setDailyInventoryId(newInventory[0].id);
-          setRegisterOpened(false);
-        }
-      }
+      // Register is considered open if there are orders today
+      setRegisterOpened(ordersData && ordersData.length > 0);
     } catch (error) {
       console.error("Error:", error);
       toast({
@@ -98,31 +74,20 @@ const Dashboard = () => {
       setSaving(true);
       setRegisterOpened(opened);
       
-      if (!dailyInventoryId) {
-        console.error("No inventory ID");
+      if (opened) {
+        // When opening the register, reset the order numbering
+        await resetOrderNumbering();
+        
         toast({
-          title: "Erro",
-          description: "ID do inventário não encontrado.",
-          variant: "destructive",
+          title: "Status atualizado",
+          description: "Caixa aberto com sucesso! A numeração dos pedidos foi reiniciada.",
         });
-        setSaving(false);
-        return;
+      } else {
+        toast({
+          title: "Status atualizado",
+          description: "Caixa fechado com sucesso!",
+        });
       }
-      
-      const { error } = await supabase
-        .from('daily_inventory')
-        .update({ register_opened: opened, updated_at: new Date().toISOString() })
-        .eq('id', dailyInventoryId);
-      
-      if (error) {
-        console.error("Error updating register status:", error);
-        throw error;
-      }
-      
-      toast({
-        title: "Status atualizado",
-        description: opened ? "Caixa aberto com sucesso!" : "Caixa fechado com sucesso!",
-      });
     } catch (error) {
       console.error("Error updating register status:", error);
       setRegisterOpened(!opened); // revert UI state on error
@@ -144,7 +109,7 @@ const Dashboard = () => {
         currentPage="Dashboard"
       />
 
-      {/* Novo card de controle de caixa */}
+      {/* Register control card */}
       <Card className="mb-6">
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-lg font-bold">
@@ -165,8 +130,8 @@ const Dashboard = () => {
         <CardContent>
           <p className="text-sm text-muted-foreground">
             {registerOpened 
-              ? "O caixa está aberto. Os clientes podem fazer pedidos." 
-              : "O caixa está fechado. Os clientes não podem fazer pedidos."}
+              ? "O caixa está aberto. Os clientes podem fazer pedidos. A numeração dos pedidos começa do #1." 
+              : "O caixa está fechado. Os clientes não podem fazer pedidos. Quando abrir o caixa novamente, a numeração dos pedidos será reiniciada."}
           </p>
         </CardContent>
       </Card>

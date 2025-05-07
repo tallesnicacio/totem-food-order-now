@@ -58,7 +58,7 @@ const Kitchen = () => {
     if (success) {
       toast({
         title: "Status atualizado",
-        description: `Pedido ${orderId.slice(-4)} atualizado para ${newStatus}`,
+        description: `Pedido atualizado para ${newStatus}`,
       });
       
       // Atualizar todas as ordens no estado local em vez de apenas remover
@@ -114,7 +114,9 @@ const Kitchen = () => {
     <Card key={order.id} className="mb-4">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
-          <CardTitle>Pedido #{order.id.slice(-4)}</CardTitle>
+          <CardTitle>
+            Pedido #{order.dayOrderNumber || '?'}
+          </CardTitle>
           <div className="text-sm text-muted-foreground">
             {formatDateTime(order.createdAt)}
           </div>
