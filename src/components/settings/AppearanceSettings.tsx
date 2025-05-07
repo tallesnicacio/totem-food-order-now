@@ -36,7 +36,7 @@ export const AppearanceSettings = ({ restaurant, onUpdate }: AppearanceSettingsP
       const file = e.target.files[0];
       const fileExt = file.name.split('.').pop();
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `logos/${fileName}`;
+      const filePath = `${fileName}`;
       
       // Upload image
       const { error: uploadError } = await supabase.storage

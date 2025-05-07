@@ -39,7 +39,7 @@ export const ProductImagePreview = ({ form, previewImage }: ProductImagePreviewP
       // Gere um nome de arquivo único
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2, 15)}-${Date.now()}.${fileExt}`;
-      const filePath = `products/${fileName}`;
+      const filePath = `${fileName}`;
       
       // Faça upload para o Supabase Storage
       const { data, error } = await supabase.storage
@@ -66,6 +66,7 @@ export const ProductImagePreview = ({ form, previewImage }: ProductImagePreviewP
         description: error.message || "Não foi possível fazer upload da imagem",
         variant: "destructive",
       });
+      console.error("Error uploading logo:", error);
     } finally {
       setUploading(false);
     }

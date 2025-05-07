@@ -128,9 +128,33 @@ const QRGenerator = () => {
         url = `${baseUrl}/qrcode?e=${restaurant.id}`;
       }
       
-      // Use the Google Charts API to generate QR codes
+      // Generate QR code image
       const encodedUrl = encodeURIComponent(url);
       const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodedUrl}`;
+      
+      // Download the QR code image and upload it to Supabase Storage
+      const qrResponse = await fetch(qrUrl);
+      const qrBlob = await qrResponse.blob();
+      
+      // Generate a unique filename
+      const fileName = `qrcode-${restaurant.id}-${tableNum || 'general'}-${Date.now()}.png`;
+      
+      // Upload to Supabase Storage
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from('qrcodes')
+        .upload(fileName, qrBlob, {
+          contentType: 'image/png',
+          upsert: true
+        });
+        
+      if (storageError) throw storageError;
+      
+      // Get the public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('qrcodes')
+        .getPublicUrl(fileName);
+      
+      const storedImageUrl = publicUrlData.publicUrl;
       
       // Check if QR code already exists
       let existingQR;
@@ -149,7 +173,7 @@ const QRGenerator = () => {
           .from('restaurant_qrcodes')
           .update({
             qr_code_url: url,
-            qr_code_image: qrUrl,
+            qr_code_image: storedImageUrl,
             updated_at: new Date().toISOString()
           })
           .eq('id', existingQR.id);
@@ -161,7 +185,7 @@ const QRGenerator = () => {
             restaurant_id: restaurant.id,
             table_number: tableNum,
             qr_code_url: url,
-            qr_code_image: qrUrl
+            qr_code_image: storedImageUrl
           });
       }
       
@@ -170,7 +194,7 @@ const QRGenerator = () => {
       // Refresh the list of stored QR codes
       await fetchStoredQRCodes();
       
-      setQrCodeUrl(qrUrl);
+      setQrCodeUrl(storedImageUrl);
       
       toast({
         title: existingQR ? "QR Code atualizado" : "QR Code gerado",
