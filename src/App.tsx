@@ -16,6 +16,7 @@ import Admin from "@/pages/Admin";
 import CommunityQR from "@/pages/CommunityQR";
 import CommunityMenu from "@/pages/CommunityMenu";
 import Index from "@/pages/Index";
+import SystemAdmin from "@/pages/SystemAdmin";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="community-qr" element={<CommunityQR />} />
           <Route path="subscription" element={<Subscription />} />
           <Route path="admin" element={<Admin />} />
+          <Route path="system-admin" element={<SystemAdmin />} />
         </Route>
         <Route path="/totem" element={<TotemMenu />} />
         <Route path="/qrcode" element={<QRCodeMenu />} />
