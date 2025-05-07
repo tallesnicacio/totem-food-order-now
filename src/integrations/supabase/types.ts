@@ -304,6 +304,44 @@ export type Database = {
           },
         ]
       }
+      restaurant_qrcodes: {
+        Row: {
+          created_at: string
+          id: string
+          qr_code_image: string
+          qr_code_url: string
+          restaurant_id: string
+          table_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          qr_code_image: string
+          qr_code_url: string
+          restaurant_id: string
+          table_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          qr_code_image?: string
+          qr_code_url?: string
+          restaurant_id?: string
+          table_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_qrcodes_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_plans: {
         Row: {
           billing_cycle: string

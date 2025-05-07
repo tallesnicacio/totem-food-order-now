@@ -7,8 +7,18 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useRestaurant } from "@/hooks/useData";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader, QrCode } from "lucide-react";
+import { Loader, QrCode, RefreshCw } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import { supabase } from "@/integrations/supabase/client";
+
+interface StoredQRCode {
+  id: string;
+  restaurant_id: string;
+  table_number: string | null;
+  qr_code_url: string;
+  qr_code_image: string;
+  created_at: string;
+}
 
 const QRGenerator = () => {
   const [baseUrl, setBaseUrl] = useState<string>("");
@@ -16,6 +26,8 @@ const QRGenerator = () => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>("table");
+  const [loadingQR, setLoadingQR] = useState<boolean>(false);
+  const [storedQRCodes, setStoredQRCodes] = useState<StoredQRCode[]>([]);
   
   const { toast } = useToast();
   const { user } = useAuth();
@@ -28,13 +40,61 @@ const QRGenerator = () => {
   }, []);
 
   useEffect(() => {
-    if (baseUrl && restaurant?.id) {
-      generateQrCode();
+    if (restaurant?.id) {
+      fetchStoredQRCodes();
     }
-  }, [baseUrl, tableNumber, restaurant?.id, activeTab]);
+  }, [restaurant?.id]);
 
-  const generateQrCode = () => {
+  useEffect(() => {
+    if (baseUrl && restaurant?.id && storedQRCodes.length > 0) {
+      displayQRCode();
+    }
+  }, [baseUrl, tableNumber, restaurant?.id, activeTab, storedQRCodes]);
+
+  const fetchStoredQRCodes = async () => {
     if (!restaurant?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('restaurant_qrcodes')
+        .select('*')
+        .eq('restaurant_id', restaurant.id);
+      
+      if (error) throw error;
+      
+      if (data) {
+        setStoredQRCodes(data as StoredQRCode[]);
+      }
+    } catch (error) {
+      console.error('Error fetching stored QR codes:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os QR codes salvos.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const displayQRCode = () => {
+    // Get the current QR code based on active tab and table number
+    let qrCode;
+    
+    if (activeTab === "table") {
+      qrCode = storedQRCodes.find(qr => qr.table_number === tableNumber);
+    } else {
+      qrCode = storedQRCodes.find(qr => qr.table_number === null);
+    }
+    
+    if (qrCode) {
+      setQrCodeUrl(qrCode.qr_code_image);
+    } else {
+      // If no stored QR code, generate a temporary one
+      generateTemporaryQRCode();
+    }
+  };
+
+  const generateTemporaryQRCode = () => {
+    if (!restaurant?.id || !baseUrl) return;
     
     // Create URL based on active tab
     let url;
@@ -51,10 +111,98 @@ const QRGenerator = () => {
     setQrCodeUrl(qrUrl);
   };
 
+  const generateAndStoreQRCode = async () => {
+    if (!restaurant?.id || !baseUrl) return;
+    
+    setLoadingQR(true);
+    
+    try {
+      // Create URL based on active tab
+      let url;
+      let tableNum = null;
+      
+      if (activeTab === "table") {
+        url = `${baseUrl}/qrcode?e=${restaurant.id}&m=${tableNumber}`;
+        tableNum = tableNumber;
+      } else {
+        url = `${baseUrl}/qrcode?e=${restaurant.id}`;
+      }
+      
+      // Use the Google Charts API to generate QR codes
+      const encodedUrl = encodeURIComponent(url);
+      const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodedUrl}`;
+      
+      // Check if QR code already exists
+      let existingQR;
+      
+      if (activeTab === "table") {
+        existingQR = storedQRCodes.find(qr => qr.table_number === tableNumber);
+      } else {
+        existingQR = storedQRCodes.find(qr => qr.table_number === null);
+      }
+      
+      let result;
+      
+      if (existingQR) {
+        // Update existing QR code
+        result = await supabase
+          .from('restaurant_qrcodes')
+          .update({
+            qr_code_url: url,
+            qr_code_image: qrUrl,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingQR.id);
+      } else {
+        // Insert new QR code
+        result = await supabase
+          .from('restaurant_qrcodes')
+          .insert({
+            restaurant_id: restaurant.id,
+            table_number: tableNum,
+            qr_code_url: url,
+            qr_code_image: qrUrl
+          });
+      }
+      
+      if (result.error) throw result.error;
+      
+      // Refresh the list of stored QR codes
+      await fetchStoredQRCodes();
+      
+      setQrCodeUrl(qrUrl);
+      
+      toast({
+        title: existingQR ? "QR Code atualizado" : "QR Code gerado",
+        description: existingQR 
+          ? "O QR Code foi atualizado com sucesso." 
+          : "O QR Code foi gerado e salvo com sucesso.",
+      });
+    } catch (error) {
+      console.error('Error generating/storing QR code:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível gerar ou salvar o QR code.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingQR(false);
+    }
+  };
+
   const handleCopyLink = (url: string) => {
     if (!url) return;
     
-    navigator.clipboard.writeText(url).then(() => {
+    // Find the actual URL to copy (not the image URL)
+    const qrCode = activeTab === "table"
+      ? storedQRCodes.find(qr => qr.table_number === tableNumber)
+      : storedQRCodes.find(qr => qr.table_number === null);
+    
+    const urlToCopy = qrCode 
+      ? qrCode.qr_code_url 
+      : `${baseUrl}/qrcode?e=${restaurant?.id}${activeTab === "table" ? `&m=${tableNumber}` : ''}`;
+    
+    navigator.clipboard.writeText(urlToCopy).then(() => {
       setCopySuccess(true);
       toast({
         title: "Link copiado!",
@@ -153,10 +301,10 @@ const QRGenerator = () => {
                     Escaneie este QR Code para acessar o cardápio da mesa {tableNumber}
                   </p>
                   
-                  <div className="flex flex-col sm:flex-row w-full gap-2">
+                  <div className="flex flex-col sm:flex-row w-full gap-2 mb-4">
                     <Button 
                       variant="outline" 
-                      onClick={() => handleCopyLink(`${baseUrl}/qrcode?e=${restaurant.id}&m=${tableNumber}`)}
+                      onClick={() => handleCopyLink(qrCodeUrl)}
                       className="w-full"
                     >
                       Copiar link
@@ -168,6 +316,27 @@ const QRGenerator = () => {
                       Baixar QR Code
                     </Button>
                   </div>
+                  
+                  <Button
+                    onClick={generateAndStoreQRCode}
+                    variant="outline"
+                    className="w-full"
+                    disabled={loadingQR}
+                  >
+                    {loadingQR ? (
+                      <>
+                        <Loader className="h-4 w-4 animate-spin mr-2" />
+                        Processando...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        {storedQRCodes.some(qr => qr.table_number === tableNumber) 
+                          ? "Atualizar QR Code" 
+                          : "Salvar QR Code"}
+                      </>
+                    )}
+                  </Button>
                 </div>
               )}
             </CardContent>
@@ -194,10 +363,10 @@ const QRGenerator = () => {
                     Escaneie este QR Code para acessar o cardápio geral
                   </p>
                   
-                  <div className="flex flex-col sm:flex-row w-full gap-2">
+                  <div className="flex flex-col sm:flex-row w-full gap-2 mb-4">
                     <Button 
                       variant="outline" 
-                      onClick={() => handleCopyLink(`${baseUrl}/qrcode?e=${restaurant.id}`)}
+                      onClick={() => handleCopyLink(qrCodeUrl)}
                       className="w-full"
                     >
                       Copiar link
@@ -209,6 +378,27 @@ const QRGenerator = () => {
                       Baixar QR Code
                     </Button>
                   </div>
+                  
+                  <Button
+                    onClick={generateAndStoreQRCode}
+                    variant="outline"
+                    className="w-full"
+                    disabled={loadingQR}
+                  >
+                    {loadingQR ? (
+                      <>
+                        <Loader className="h-4 w-4 animate-spin mr-2" />
+                        Processando...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        {storedQRCodes.some(qr => qr.table_number === null) 
+                          ? "Atualizar QR Code" 
+                          : "Salvar QR Code"}
+                      </>
+                    )}
+                  </Button>
                 </div>
               )}
             </CardContent>
