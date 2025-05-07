@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader, QrCode, RefreshCw, Download, Copy, Info } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
+import { QRCodeCanvas } from "qrcode.react";
 
 interface StoredQRCode {
   id: string;
@@ -28,6 +29,7 @@ const QRGenerator = () => {
   const [activeTab, setActiveTab] = useState<string>("table");
   const [loadingQR, setLoadingQR] = useState<boolean>(false);
   const [storedQRCodes, setStoredQRCodes] = useState<StoredQRCode[]>([]);
+  const qrCodeRef = useRef<HTMLDivElement>(null);
   
   const { toast } = useToast();
   const { user } = useAuth();
@@ -86,7 +88,7 @@ const QRGenerator = () => {
     }
     
     if (qrCode) {
-      setQrCodeUrl(qrCode.qr_code_image);
+      setQrCodeUrl(qrCode.qr_code_url);
     } else {
       // If no stored QR code, generate a temporary one
       generateTemporaryQRCode();
@@ -104,15 +106,11 @@ const QRGenerator = () => {
       url = `${baseUrl}/qrcode?e=${restaurant.id}`;
     }
     
-    // Use the Google Charts API to generate QR codes
-    const encodedUrl = encodeURIComponent(url);
-    const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodedUrl}`;
-    
-    setQrCodeUrl(qrUrl);
+    setQrCodeUrl(url);
   };
 
   const generateAndStoreQRCode = async () => {
-    if (!restaurant?.id || !baseUrl) return;
+    if (!restaurant?.id || !baseUrl || !qrCodeRef.current) return;
     
     setLoadingQR(true);
     
@@ -128,9 +126,11 @@ const QRGenerator = () => {
         url = `${baseUrl}/qrcode?e=${restaurant.id}`;
       }
       
-      // Generate direct QR code URL without trying to download the image
-      const encodedUrl = encodeURIComponent(url);
-      const qrImageUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodedUrl}`;
+      // Generate QR code image as DataURL using canvas
+      const canvas = qrCodeRef.current.querySelector('canvas');
+      if (!canvas) throw new Error("QR Code canvas not found");
+      
+      const qrImageUrl = canvas.toDataURL("image/png");
       
       // Check if QR code already exists
       let existingQR;
@@ -170,8 +170,6 @@ const QRGenerator = () => {
       // Refresh the list of stored QR codes
       await fetchStoredQRCodes();
       
-      setQrCodeUrl(qrImageUrl);
-      
       toast({
         title: existingQR ? "QR Code atualizado" : "QR Code gerado",
         description: existingQR 
@@ -190,19 +188,10 @@ const QRGenerator = () => {
     }
   };
 
-  const handleCopyLink = (url: string) => {
-    if (!url) return;
+  const handleCopyLink = () => {
+    if (!qrCodeUrl) return;
     
-    // Find the actual URL to copy (not the image URL)
-    const qrCode = activeTab === "table"
-      ? storedQRCodes.find(qr => qr.table_number === tableNumber)
-      : storedQRCodes.find(qr => qr.table_number === null);
-    
-    const urlToCopy = qrCode 
-      ? qrCode.qr_code_url 
-      : `${baseUrl}/qrcode?e=${restaurant?.id}${activeTab === "table" ? `&m=${tableNumber}` : ''}`;
-    
-    navigator.clipboard.writeText(urlToCopy).then(() => {
+    navigator.clipboard.writeText(qrCodeUrl).then(() => {
       setCopySuccess(true);
       toast({
         title: "Link copiado!",
@@ -217,11 +206,14 @@ const QRGenerator = () => {
   };
 
   const handleDownloadQR = () => {
-    if (!qrCodeUrl) return;
+    if (!qrCodeRef.current) return;
+    
+    const canvas = qrCodeRef.current.querySelector('canvas');
+    if (!canvas) return;
     
     // Create a download link for the QR code image
     const link = document.createElement("a");
-    link.href = qrCodeUrl;
+    link.href = canvas.toDataURL("image/png");
     link.download = activeTab === "table" 
       ? `qrcode-mesa-${tableNumber}.png` 
       : "qrcode-geral.png";
@@ -302,8 +294,13 @@ const QRGenerator = () => {
               
               {qrCodeUrl && (
                 <div className="flex flex-col items-center mt-6">
-                  <div className="border p-6 rounded-lg mb-4 bg-white">
-                    <img src={qrCodeUrl} alt="QR Code" className="w-full h-auto max-w-[300px]" />
+                  <div className="border p-6 rounded-lg mb-4 bg-white" ref={qrCodeRef}>
+                    <QRCodeCanvas 
+                      value={qrCodeUrl}
+                      size={300}
+                      level="H"
+                      includeMargin={true}
+                    />
                   </div>
                   
                   <p className="text-sm text-muted-foreground mb-4 text-center">
@@ -313,7 +310,7 @@ const QRGenerator = () => {
                   <div className="flex flex-col sm:flex-row w-full gap-2 mb-4">
                     <Button 
                       variant="outline" 
-                      onClick={() => handleCopyLink(qrCodeUrl)}
+                      onClick={handleCopyLink}
                       className="w-full flex items-center justify-center"
                     >
                       <Copy className="h-4 w-4 mr-2" />
@@ -375,8 +372,13 @@ const QRGenerator = () => {
               
               {qrCodeUrl && (
                 <div className="flex flex-col items-center">
-                  <div className="border p-6 rounded-lg mb-4 bg-white">
-                    <img src={qrCodeUrl} alt="QR Code Geral" className="w-full h-auto max-w-[300px]" />
+                  <div className="border p-6 rounded-lg mb-4 bg-white" ref={qrCodeRef}>
+                    <QRCodeCanvas 
+                      value={qrCodeUrl}
+                      size={300}
+                      level="H"
+                      includeMargin={true}
+                    />
                   </div>
                   
                   <p className="text-sm text-muted-foreground mb-4 text-center">
@@ -386,7 +388,7 @@ const QRGenerator = () => {
                   <div className="flex flex-col sm:flex-row w-full gap-2 mb-4">
                     <Button 
                       variant="outline" 
-                      onClick={() => handleCopyLink(qrCodeUrl)}
+                      onClick={handleCopyLink}
                       className="w-full flex items-center justify-center"
                     >
                       <Copy className="h-4 w-4 mr-2" />

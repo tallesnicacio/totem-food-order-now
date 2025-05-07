@@ -1,14 +1,12 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader, QrCode, Download, Copy } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { Label } from "@/components/ui/label";
+import { QRCodeCanvas } from "qrcode.react";
 
 interface CommunityQRData {
   id: string;
@@ -25,6 +23,7 @@ const CommunityQR = () => {
   const [baseUrl, setBaseUrl] = useState<string>("");
   const [activeCommunityQR, setActiveCommunityQR] = useState<CommunityQRData | null>(null);
   const [communityQRs, setCommunityQRs] = useState<CommunityQRData[]>([]);
+  const qrCodeRef = useRef<HTMLDivElement>(null);
   
   const { toast } = useToast();
   const { user } = useAuth();
@@ -138,12 +137,7 @@ const CommunityQR = () => {
     
     // Create URL for community QR code
     const url = `${baseUrl}/community?id=${activeCommunityQR.id}`;
-    
-    // Use the Google Charts API to generate QR codes
-    const encodedUrl = encodeURIComponent(url);
-    const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodedUrl}`;
-    
-    setQrCodeUrl(qrUrl);
+    setQrCodeUrl(url);
   };
 
   const handleSelectQR = (qrCode: CommunityQRData) => {
@@ -163,11 +157,14 @@ const CommunityQR = () => {
   };
 
   const handleDownloadQR = () => {
-    if (!qrCodeUrl || !activeCommunityQR) return;
+    if (!qrCodeUrl || !activeCommunityQR || !qrCodeRef.current) return;
+    
+    const canvas = qrCodeRef.current.querySelector('canvas');
+    if (!canvas) return;
     
     // Create an invisible link element to download the QR code
     const link = document.createElement("a");
-    link.href = qrCodeUrl;
+    link.href = canvas.toDataURL("image/png");
     link.download = `qrcode-comunidade-${activeCommunityQR.name.replace(/\s+/g, '-').toLowerCase()}.png`;
     document.body.appendChild(link);
     link.click();
@@ -256,8 +253,13 @@ const CommunityQR = () => {
               <CardContent>
                 <div className="flex flex-col items-center mt-2">
                   {qrCodeUrl && (
-                    <div className="border p-6 rounded-lg mb-4 bg-white">
-                      <img src={qrCodeUrl} alt="QR Code Comunitário" className="w-full h-auto max-w-[300px]" />
+                    <div className="border p-6 rounded-lg mb-4 bg-white" ref={qrCodeRef}>
+                      <QRCodeCanvas
+                        value={qrCodeUrl}
+                        size={300}
+                        level="H"
+                        includeMargin={true}
+                      />
                     </div>
                   )}
                   
