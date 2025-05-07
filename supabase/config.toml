@@ -23,3 +23,15 @@ name = "restaurant-assets"
 public = true
 file_size_limit = "10MB"
 allowed_mime_types = ["image/png", "image/jpeg", "image/gif", "image/svg+xml", "image/webp"]
+
+[[storage.buckets]]
+name = "product-images"
+public = true
+file_size_limit = "10MB"
+allowed_mime_types = ["image/png", "image/jpeg", "image/gif", "image/svg+xml", "image/webp"]
+
+[[storage.buckets]]
+name = "qrcodes"
+public = true
+file_size_limit = "5MB"
+allowed_mime_types = ["image/png", "image/jpeg", "image/svg+xml"]
