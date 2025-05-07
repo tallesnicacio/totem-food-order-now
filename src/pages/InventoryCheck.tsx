@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Tables } from "@/integrations/supabase/types";
 
 interface Product {
   id: string;
@@ -21,7 +22,7 @@ interface Product {
   description: string;
 }
 
-interface InventoryRecord {
+interface InventoryRecord extends Tables<"inventory_checks"> {
   id: string;
   date: string;
   user_id: string;
@@ -59,7 +60,7 @@ const InventoryCheck = () => {
       today.setHours(0, 0, 0, 0);
       
       const { data: inventoryData, error: inventoryError } = await supabase
-        .from('inventory_checks')
+        .from("inventory_checks")
         .select('*')
         .gte('date', today.toISOString())
         .order('created_at', { ascending: false })
@@ -67,7 +68,7 @@ const InventoryCheck = () => {
       
       if (inventoryError) throw inventoryError;
       
-      const todayInventory = inventoryData && inventoryData.length > 0 ? inventoryData[0] : null;
+      const todayInventory = inventoryData && inventoryData.length > 0 ? inventoryData[0] as InventoryRecord : null;
       setTodayCheck(todayInventory);
       
       // Fetch products
@@ -84,7 +85,7 @@ const InventoryCheck = () => {
       // If today's check exists, get items status
       if (todayInventory) {
         const { data: itemsData, error: itemsError } = await supabase
-          .from('inventory_items')
+          .from("inventory_items")
           .select('*')
           .eq('inventory_id', todayInventory.id);
           
@@ -165,7 +166,7 @@ const InventoryCheck = () => {
       let inventoryId = todayCheck?.id;
       if (!inventoryId) {
         const { data, error } = await supabase
-          .from('inventory_checks')
+          .from("inventory_checks")
           .insert({
             date: new Date().toISOString(),
             user_id: userId
@@ -187,7 +188,7 @@ const InventoryCheck = () => {
       // Delete existing items if updating
       if (todayCheck) {
         const { error: deleteError } = await supabase
-          .from('inventory_items')
+          .from("inventory_items")
           .delete()
           .eq('inventory_id', inventoryId);
           
@@ -196,7 +197,7 @@ const InventoryCheck = () => {
 
       // Insert new items
       const { error: insertError } = await supabase
-        .from('inventory_items')
+        .from("inventory_items")
         .insert(inventoryItemsToSave);
         
       if (insertError) throw insertError;

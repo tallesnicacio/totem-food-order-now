@@ -10,12 +10,13 @@ import { Banknote, DollarSign, AlignLeft, Calendar } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { Tables } from "@/integrations/supabase/types";
 
-interface CashRecord {
+interface CashRecord extends Tables<"cash_flow"> {
   id: string;
   type: 'opening' | 'closing';
   amount: number;
-  notes: string;
+  notes: string | null;
   created_at: string;
   user_id: string;
 }
@@ -39,7 +40,7 @@ const CashFlow = () => {
       today.setHours(0, 0, 0, 0);
       
       const { data, error } = await supabase
-        .from('cash_flow')
+        .from("cash_flow")
         .select('*')
         .gte('created_at', today.toISOString())
         .order('created_at', { ascending: true });
@@ -85,7 +86,7 @@ const CashFlow = () => {
       if (!userId) throw new Error("Usuário não autenticado");
 
       const { error } = await supabase
-        .from('cash_flow')
+        .from("cash_flow")
         .insert({
           type: 'opening',
           amount: parseFloat(amount.replace(',', '.')),
@@ -132,7 +133,7 @@ const CashFlow = () => {
       if (!userId) throw new Error("Usuário não autenticado");
 
       const { error } = await supabase
-        .from('cash_flow')
+        .from("cash_flow")
         .insert({
           type: 'closing',
           amount: parseFloat(amount.replace(',', '.')),

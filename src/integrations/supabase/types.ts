@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      cash_flow: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          notes: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           icon: string | null
@@ -134,6 +161,66 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      inventory_checks: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      inventory_items: {
+        Row: {
+          id: string
+          inventory_id: string
+          is_available: boolean
+          notes: string | null
+          product_id: string
+        }
+        Insert: {
+          id?: string
+          inventory_id: string
+          is_available?: boolean
+          notes?: string | null
+          product_id: string
+        }
+        Update: {
+          id?: string
+          inventory_id?: string
+          is_available?: boolean
+          notes?: string | null
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_inventory_id_fkey"
+            columns: ["inventory_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_checks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       order_items: {
         Row: {
