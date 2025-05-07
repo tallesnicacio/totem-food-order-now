@@ -46,7 +46,8 @@ export const useProducts = () => {
           price: product.price,
           image: product.image,
           category_id: product.categoryId,
-          out_of_stock: product.outOfStock || false
+          out_of_stock: product.outOfStock || false,
+          available: product.available !== undefined ? product.available : true
         })
         .select();
 
@@ -83,7 +84,8 @@ export const useProducts = () => {
           price: product.price,
           image: product.image,
           category_id: product.categoryId,
-          out_of_stock: product.outOfStock || false
+          out_of_stock: product.outOfStock || false,
+          available: product.available !== undefined ? product.available : true
         })
         .eq('id', product.id);
 
@@ -100,6 +102,32 @@ export const useProducts = () => {
       toast({
         title: "Erro",
         description: "Não foi possível atualizar o produto",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const toggleProductAvailability = async (productId: string, available: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .update({ available })
+        .eq('id', productId);
+
+      if (error) throw error;
+      
+      setProducts(products.map(p => p.id === productId ? { ...p, available } : p));
+      toast({
+        title: "Sucesso",
+        description: `Produto ${available ? 'disponibilizado' : 'indisponibilizado'} com sucesso`,
+      });
+      return true;
+    } catch (error: any) {
+      console.error("Error toggling product availability:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível alterar a disponibilidade do produto",
         variant: "destructive",
       });
       return false;
@@ -144,6 +172,7 @@ export const useProducts = () => {
     addProduct,
     updateProduct,
     deleteProduct,
+    toggleProductAvailability,
     refreshProducts: fetchProducts
   };
 };
