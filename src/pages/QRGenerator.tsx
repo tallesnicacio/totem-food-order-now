@@ -7,7 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useRestaurant } from "@/hooks/useData";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader, QrCode, RefreshCw, Download, Copy } from "lucide-react";
+import { Loader, QrCode, RefreshCw, Download, Copy, Info } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -46,7 +46,7 @@ const QRGenerator = () => {
   }, [restaurant?.id]);
 
   useEffect(() => {
-    if (baseUrl && restaurant?.id && storedQRCodes.length > 0) {
+    if (baseUrl && restaurant?.id) {
       displayQRCode();
     }
   }, [baseUrl, tableNumber, restaurant?.id, activeTab, storedQRCodes]);
@@ -128,33 +128,9 @@ const QRGenerator = () => {
         url = `${baseUrl}/qrcode?e=${restaurant.id}`;
       }
       
-      // Generate QR code image
+      // Generate direct QR code URL without trying to download the image
       const encodedUrl = encodeURIComponent(url);
-      const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodedUrl}`;
-      
-      // Download the QR code image and upload it to Supabase Storage
-      const qrResponse = await fetch(qrUrl);
-      const qrBlob = await qrResponse.blob();
-      
-      // Generate a unique filename
-      const fileName = `qrcode-${restaurant.id}-${tableNum || 'general'}-${Date.now()}.png`;
-      
-      // Upload to Supabase Storage
-      const { data: storageData, error: storageError } = await supabase.storage
-        .from('qrcodes')
-        .upload(fileName, qrBlob, {
-          contentType: 'image/png',
-          upsert: true
-        });
-        
-      if (storageError) throw storageError;
-      
-      // Get the public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('qrcodes')
-        .getPublicUrl(fileName);
-      
-      const storedImageUrl = publicUrlData.publicUrl;
+      const qrImageUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodedUrl}`;
       
       // Check if QR code already exists
       let existingQR;
@@ -173,7 +149,7 @@ const QRGenerator = () => {
           .from('restaurant_qrcodes')
           .update({
             qr_code_url: url,
-            qr_code_image: storedImageUrl,
+            qr_code_image: qrImageUrl,
             updated_at: new Date().toISOString()
           })
           .eq('id', existingQR.id);
@@ -185,7 +161,7 @@ const QRGenerator = () => {
             restaurant_id: restaurant.id,
             table_number: tableNum,
             qr_code_url: url,
-            qr_code_image: storedImageUrl
+            qr_code_image: qrImageUrl
           });
       }
       
@@ -194,7 +170,7 @@ const QRGenerator = () => {
       // Refresh the list of stored QR codes
       await fetchStoredQRCodes();
       
-      setQrCodeUrl(storedImageUrl);
+      setQrCodeUrl(qrImageUrl);
       
       toast({
         title: existingQR ? "QR Code atualizado" : "QR Code gerado",
@@ -243,7 +219,7 @@ const QRGenerator = () => {
   const handleDownloadQR = () => {
     if (!qrCodeUrl) return;
     
-    // Create an invisible link element to download the QR code
+    // Create a download link for the QR code image
     const link = document.createElement("a");
     link.href = qrCodeUrl;
     link.download = activeTab === "table" 
