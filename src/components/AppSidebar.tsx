@@ -23,7 +23,6 @@ import {
   ChefHat, 
   QrCode, 
   Monitor, 
-  Package, 
   LogOut,
   Shield
 } from "lucide-react";
@@ -54,11 +53,6 @@ export function AppSidebar() {
       title: "Produtos",
       url: "/products",
       icon: PackageOpen
-    },
-    {
-      title: "Estoque Diário",
-      url: "/daily-inventory",
-      icon: Package
     },
     {
       title: "Cozinha",

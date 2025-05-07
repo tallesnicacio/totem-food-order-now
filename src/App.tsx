@@ -17,6 +17,9 @@ import Auth from "./pages/Auth";
 import Products from "./pages/Products";
 import SystemAdmin from "./pages/SystemAdmin";
 import { useAuth } from "./hooks/useAuth";
+import { useState, useEffect } from "react";
+import { supabase } from "./integrations/supabase/client";
+import { Loader } from "lucide-react";
 
 // Protected route component that redirects to auth if not logged in
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -27,6 +30,67 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   return user ? <>{children}</> : <Navigate to="/auth" replace />;
+};
+
+// Check if register is open for public routes (totem and QR code)
+const PublicRouteWithRegisterCheck = ({ children }: { children: React.ReactNode }) => {
+  const [registerOpen, setRegisterOpen] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkRegisterStatus = async () => {
+      try {
+        setLoading(true);
+        // Check if there are any orders for today - if yes, the register is open
+        const today = new Date().toISOString().split('T')[0];
+        const { data, error } = await supabase
+          .from('orders')
+          .select('id')
+          .gte('created_at', today)
+          .lt('created_at', new Date(new Date(today).getTime() + 24 * 60 * 60 * 1000).toISOString())
+          .limit(1);
+        
+        if (error) {
+          console.error("Error checking register status:", error);
+          throw error;
+        }
+        
+        // Register is considered open if there are orders today
+        setRegisterOpen(data && data.length > 0);
+      } catch (error) {
+        console.error("Error:", error);
+        setRegisterOpen(false); // Default to closed on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkRegisterStatus();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Carregando...</span>
+      </div>
+    );
+  }
+
+  // If register is not open, display a message
+  if (!registerOpen) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        <h1 className="text-2xl font-bold mb-4">Estabelecimento Fechado</h1>
+        <p className="text-muted-foreground mb-6">
+          Desculpe, o estabelecimento não está aceitando pedidos no momento.
+          Por favor, tente novamente mais tarde.
+        </p>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
 };
 
 // Unprotected route for public pages (only Totem and QR code menu are public)
@@ -58,8 +122,16 @@ const AppRoutes = () => {
     <Routes>
       {/* Public routes - no auth required */}
       <Route path="/auth" element={<Auth />} />
-      <Route path="/totem" element={<TotemMenu />} />
-      <Route path="/qrcode" element={<QRCodeMenu />} />
+      <Route path="/totem" element={
+        <PublicRouteWithRegisterCheck>
+          <TotemMenu />
+        </PublicRouteWithRegisterCheck>
+      } />
+      <Route path="/qrcode" element={
+        <PublicRouteWithRegisterCheck>
+          <QRCodeMenu />
+        </PublicRouteWithRegisterCheck>
+      } />
       
       {/* Redirect root to auth if not logged in, or to dashboard if logged in */}
       <Route path="/" element={<Index />} />
