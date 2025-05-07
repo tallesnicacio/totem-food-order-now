@@ -272,7 +272,6 @@ const CommunityMenu = () => {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="mb-4"
-                  prefix={<Search className="h-4 w-4 text-muted-foreground mr-2" />}
                 />
                 
                 <Tabs 
