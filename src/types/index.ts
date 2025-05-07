@@ -1,3 +1,20 @@
+export interface CartItem {
+  product: {
+    id: string;
+    name: string;
+    price: number;
+    image: string;
+    description: string;
+    categoryId: string;
+  };
+  quantity: number;
+  notes?: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+}
 
 export interface Product {
   id: string;
@@ -5,46 +22,31 @@ export interface Product {
   description: string;
   price: number;
   image: string;
-  categoryId: string;
-  outOfStock?: boolean;
-  available?: boolean;
+  category_id: string;
+  category?: Category;
 }
 
-export interface Category {
-  id: string;
-  name: string;
-  icon?: string;
-}
-
-export interface CartItem {
-  product: Product;
-  quantity: number;
-  notes?: string;
-}
-
+// Add OrderSummary if it doesn't exist
 export interface OrderSummary {
   id: string;
-  items: CartItem[];
+  dayOrderNumber?: number;
+  createdAt: string;
+  status: 'new' | 'preparing' | 'ready' | 'delivered';
   total: number;
+  paymentMethod: string;
   tableId?: string;
   customerName?: string;
-  status: 'new' | 'preparing' | 'ready' | 'delivered';
-  dayOrderNumber?: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Restaurant {
-  id: string;
-  name: string;
-  logo?: string;
-  themeColor?: string;
-  useTables: boolean;
-  paymentMethods: {
-    pix: boolean;
-    creditCard: boolean;
-    cash: boolean;
-    payLater: boolean;
-  };
-  paymentTiming: 'before' | 'after';
+  items: {
+    id: string;
+    quantity: number;
+    notes?: string;
+    product: {
+      id: string;
+      name: string;
+      price: number;
+      image: string;
+      description: string;
+      categoryId: string;
+    };
+  }[];
 }
