@@ -11,6 +11,7 @@ interface CheckoutFormProps {
   onCancel: () => void;
   onComplete: (customerName: string, paymentMethod: string, tableId?: string) => void;
   isSubmitting?: boolean;
+  tableId?: string; // Add tableId as a prop
 }
 
 export const CheckoutForm = ({ 
@@ -18,15 +19,17 @@ export const CheckoutForm = ({
   restaurant,
   onCancel,
   onComplete,
-  isSubmitting = false
+  isSubmitting = false,
+  tableId = '' // Default to empty string
 }: CheckoutFormProps) => {
   const [customerName, setCustomerName] = useState("");
-  const [tableId, setTableId] = useState("");
+  const [localTableId, setLocalTableId] = useState(tableId); // Use provided tableId or empty string
   const [paymentMethod, setPaymentMethod] = useState(restaurant.paymentMethods.pix ? "pix" : "creditCard");
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onComplete(customerName, paymentMethod, tableId);
+    // Use the provided tableId from props if available, otherwise use the localTableId
+    onComplete(customerName, paymentMethod, tableId || localTableId);
   };
   
   return (
@@ -42,7 +45,8 @@ export const CheckoutForm = ({
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          {restaurant.useTables && (
+          {/* Only show table input if restaurant uses tables AND no tableId is provided */}
+          {restaurant.useTables && !tableId && (
             <div className="space-y-2">
               <label htmlFor="tableId" className="block font-medium">
                 Número da Mesa
@@ -50,10 +54,26 @@ export const CheckoutForm = ({
               <input
                 id="tableId"
                 type="text"
-                value={tableId}
-                onChange={(e) => setTableId(e.target.value)}
+                value={localTableId}
+                onChange={(e) => setLocalTableId(e.target.value)}
                 placeholder="Ex: 5"
                 className="w-full p-3 border rounded-md"
+              />
+            </div>
+          )}
+
+          {/* If tableId is provided, show it as read-only */}
+          {restaurant.useTables && tableId && (
+            <div className="space-y-2">
+              <label htmlFor="tableIdReadOnly" className="block font-medium">
+                Mesa
+              </label>
+              <input
+                id="tableIdReadOnly"
+                type="text"
+                value={tableId}
+                readOnly
+                className="w-full p-3 border rounded-md bg-muted"
               />
             </div>
           )}

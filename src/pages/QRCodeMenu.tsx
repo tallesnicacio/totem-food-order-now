@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -102,7 +103,8 @@ const QRCodeMenu = () => {
     
     try {
       setIsSubmitting(true);
-      // Use o tableId da URL ou o informado no checkout
+      
+      // The tableId from URL takes precedence over the input
       const finalTableId = tableId || tableIdInput;
       
       const total = cartItems.reduce((sum, item) => {
@@ -204,6 +206,7 @@ const QRCodeMenu = () => {
             onCancel={() => setMenuState("menu")}
             onComplete={handleCompleteOrder}
             isSubmitting={isSubmitting}
+            tableId={tableId} // Pass the tableId from URL to the CheckoutForm
           />
         </div>
       )}
