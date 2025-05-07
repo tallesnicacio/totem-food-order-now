@@ -7,7 +7,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useRestaurant } from "@/hooks/useData";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader } from "lucide-react";
+import { Loader, QrCode } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
 
 const QRGenerator = () => {
   const [baseUrl, setBaseUrl] = useState<string>("");
@@ -36,9 +37,12 @@ const QRGenerator = () => {
     if (!restaurant?.id) return;
     
     // Create URL based on active tab
-    const url = activeTab === "table" 
-      ? `${baseUrl}/qrcode?e=${restaurant.id}&m=${tableNumber}` 
-      : `${baseUrl}/qrcode?e=${restaurant.id}`;
+    let url;
+    if (activeTab === "table") {
+      url = `${baseUrl}/qrcode?e=${restaurant.id}&m=${tableNumber}`;
+    } else {
+      url = `${baseUrl}/qrcode?e=${restaurant.id}`;
+    }
     
     // Use the Google Charts API to generate QR codes
     const encodedUrl = encodeURIComponent(url);
@@ -48,6 +52,8 @@ const QRGenerator = () => {
   };
 
   const handleCopyLink = (url: string) => {
+    if (!url) return;
+    
     navigator.clipboard.writeText(url).then(() => {
       setCopySuccess(true);
       toast({
@@ -63,6 +69,8 @@ const QRGenerator = () => {
   };
 
   const handleDownloadQR = () => {
+    if (!qrCodeUrl) return;
+    
     // Create an invisible link element to download the QR code
     const link = document.createElement("a");
     link.href = qrCodeUrl;
@@ -81,7 +89,7 @@ const QRGenerator = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex items-center justify-center min-h-[60vh]">
         <Loader className="h-8 w-8 animate-spin" />
         <span className="ml-2">Carregando...</span>
       </div>
@@ -90,7 +98,7 @@ const QRGenerator = () => {
 
   if (!restaurant) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen p-4">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
         <h1 className="text-2xl font-bold mb-4">Restaurante não encontrado</h1>
         <p className="text-muted-foreground mb-4">
           Configure seu restaurante nas configurações antes de gerar QR Codes.
@@ -100,8 +108,16 @@ const QRGenerator = () => {
   }
 
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-6">Gerador de QR Code</h1>
+    <div className="container max-w-4xl mx-auto">
+      <PageHeader 
+        title="Gerador de QR Code" 
+        description="Gere QR Codes para mesas ou para uso geral"
+        currentPage="Gerador de QR Code"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" }
+        ]}
+        icon={<QrCode className="h-6 w-6" />}
+      />
       
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-6">
