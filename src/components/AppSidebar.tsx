@@ -7,7 +7,9 @@ import {
   QrCode,
   CreditCard,
   Users,
-  X
+  X,
+  DatabaseIcon,
+  FileCheck,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -83,6 +85,28 @@ export function AppSidebar() {
               <Link to="/kitchen">
                 <ChefHat className="mr-2 h-4 w-4" />
                 Cozinha
+              </Link>
+            </Button>
+            <Button
+              variant={pathname === "/cashflow" ? "default" : "ghost"}
+              size="sm"
+              className="w-full justify-start"
+              asChild
+            >
+              <Link to="/cashflow">
+                <DatabaseIcon className="mr-2 h-4 w-4" />
+                Fluxo de Caixa
+              </Link>
+            </Button>
+            <Button
+              variant={pathname === "/inventory" ? "default" : "ghost"}
+              size="sm"
+              className="w-full justify-start"
+              asChild
+            >
+              <Link to="/inventory">
+                <FileCheck className="mr-2 h-4 w-4" />
+                Verificação de Estoque
               </Link>
             </Button>
             <Button
