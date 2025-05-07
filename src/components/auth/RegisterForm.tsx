@@ -4,6 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CardContent, CardFooter } from "@/components/ui/card";
 import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface RegisterFormProps {
   email: string;
@@ -23,10 +30,12 @@ export const RegisterForm = ({
   handleRegister
 }: RegisterFormProps) => {
   const [name, setName] = useState("");
+  const [role, setRole] = useState("staff");
   
   const onSubmit = (e: React.FormEvent) => {
-    // Store name in localStorage to be accessed during registration
+    // Store name and role in localStorage to be accessed during registration
     localStorage.setItem("registerName", name);
+    localStorage.setItem("registerRole", role);
     handleRegister(e);
   };
   
@@ -63,6 +72,19 @@ export const RegisterForm = ({
             onChange={(e) => setPassword(e.target.value)} 
             required
           />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="register-role">Função</Label>
+          <Select value={role} onValueChange={setRole}>
+            <SelectTrigger id="register-role">
+              <SelectValue placeholder="Selecione uma função" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="admin">Administrador</SelectItem>
+              <SelectItem value="manager">Gerente</SelectItem>
+              <SelectItem value="staff">Funcionário</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </CardContent>
       <CardFooter>

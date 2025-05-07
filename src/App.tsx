@@ -17,6 +17,9 @@ import CommunityQR from "@/pages/CommunityQR";
 import CommunityMenu from "@/pages/CommunityMenu";
 import Index from "@/pages/Index";
 import SystemAdmin from "@/pages/SystemAdmin";
+import Restaurants from "@/pages/Restaurants";
+import CashFlow from "@/pages/CashFlow";
+import InventoryCheck from "@/pages/InventoryCheck";
 
 function App() {
   return (
@@ -25,6 +28,7 @@ function App() {
         <Route path="/" element={<Index />} />
         <Route path="/" element={<AppLayout />}>
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="restaurants" element={<Restaurants />} />
           <Route path="products" element={<Products />} />
           <Route path="kitchen" element={<Kitchen />} />
           <Route path="settings" element={<Settings />} />
@@ -33,6 +37,8 @@ function App() {
           <Route path="subscription" element={<Subscription />} />
           <Route path="admin" element={<Admin />} />
           <Route path="system-admin" element={<SystemAdmin />} />
+          <Route path="cashflow" element={<CashFlow />} />
+          <Route path="inventory" element={<InventoryCheck />} />
         </Route>
         <Route path="/totem" element={<TotemMenu />} />
         <Route path="/qrcode" element={<QRCodeMenu />} />
