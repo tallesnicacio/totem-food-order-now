@@ -1,16 +1,17 @@
+
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { AppLayout } from "@/layouts/AppLayout";
-import { Dashboard } from "@/pages/Dashboard";
-import { Products } from "@/pages/Products";
-import { Kitchen } from "@/pages/Kitchen";
-import { Settings } from "@/pages/Settings";
-import { QRGenerator } from "@/pages/QRGenerator";
-import { Subscription } from "@/pages/Subscription";
-import { Auth } from "@/pages/Auth";
-import { TotemMenu } from "@/pages/TotemMenu";
-import { QRCodeMenu } from "@/pages/QRCodeMenu";
-import { NotFound } from "@/pages/NotFound";
+import Dashboard from "@/pages/Dashboard";
+import Products from "@/pages/Products";
+import Kitchen from "@/pages/Kitchen";
+import Settings from "@/pages/Settings";
+import QRGenerator from "@/pages/QRGenerator";
+import Subscription from "@/pages/Subscription";
+import Auth from "@/pages/Auth";
+import TotemMenu from "@/pages/TotemMenu";
+import QRCodeMenu from "@/pages/QRCodeMenu";
+import NotFound from "@/pages/NotFound";
 import Admin from "@/pages/Admin";
 import CommunityQR from "@/pages/CommunityQR";
 import CommunityMenu from "@/pages/CommunityMenu";

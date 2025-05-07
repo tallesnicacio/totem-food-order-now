@@ -7,9 +7,10 @@ interface ProductGridProps {
   products: Product[];
   onAddToCart: (product: Product) => void;
   loading?: boolean;
+  emptyMessage?: string; // Add the optional emptyMessage prop
 }
 
-export const ProductGrid = ({ products, onAddToCart, loading = false }: ProductGridProps) => {
+export const ProductGrid = ({ products, onAddToCart, loading = false, emptyMessage = "No products available" }: ProductGridProps) => {
   if (loading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-4 pb-24">
@@ -29,6 +30,14 @@ export const ProductGrid = ({ products, onAddToCart, loading = false }: ProductG
             </div>
           </div>
         ))}
+      </div>
+    );
+  }
+  
+  if (products.length === 0) {
+    return (
+      <div className="flex items-center justify-center p-8 text-center">
+        <p className="text-muted-foreground">{emptyMessage}</p>
       </div>
     );
   }

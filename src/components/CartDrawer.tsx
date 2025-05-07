@@ -9,7 +9,8 @@ interface CartDrawerProps {
   items: CartItem[];
   onUpdateQuantity: (itemId: string, quantity: number) => void;
   onRemoveItem: (itemId: string) => void;
-  onCheckout: () => void;
+  onCheckout?: () => void;
+  currentEstablishment?: string;
 }
 
 export const CartDrawer = ({
@@ -18,7 +19,8 @@ export const CartDrawer = ({
   items,
   onUpdateQuantity,
   onRemoveItem,
-  onCheckout
+  onCheckout = () => {},
+  currentEstablishment = ""
 }: CartDrawerProps) => {
   
   const total = items.reduce((sum, item) => {
@@ -43,6 +45,11 @@ export const CartDrawer = ({
             <div className="flex items-center gap-2">
               <ShoppingCart className="w-5 h-5" />
               <h2 className="font-bold text-xl">Seu Pedido</h2>
+              {currentEstablishment && (
+                <span className="text-sm text-muted-foreground">
+                  ({currentEstablishment})
+                </span>
+              )}
             </div>
             <button 
               onClick={onClose}

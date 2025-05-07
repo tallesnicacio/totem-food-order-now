@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader, Store, Search } from "lucide-react";
-import { Product, Category, Restaurant, CartItem } from "@/types";
-import { mapProductFromDB, mapCategoryFromDB, mapRestaurantFromDB } from "@/types/supabase";
+import { Product, Category, CartItem } from "@/types";
+import { mapProductFromDB, mapCategoryFromDB } from "@/types/supabase";
 import { ProductGrid } from "@/components/ProductGrid";
 import { CartDrawer } from "@/components/CartDrawer";
 import { Input } from "@/components/ui/input";
@@ -168,7 +168,11 @@ const CommunityMenu = () => {
           categoryId: product.category_id
         };
         
-        return [...prevItems, { product: productWithCategoryId as any, quantity: 1 }];
+        return [...prevItems, { 
+          product: productWithCategoryId as any, 
+          quantity: 1,
+          notes: '' 
+        }];
       }
     });
   };
@@ -303,7 +307,7 @@ const CommunityMenu = () => {
       </div>
       
       <CartDrawer
-        open={isCartOpen}
+        isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         items={cartItems}
         onUpdateQuantity={(id, quantity) => {
