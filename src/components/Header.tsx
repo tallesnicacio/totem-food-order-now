@@ -13,12 +13,18 @@ export const Header = ({ restaurant, cartItemCount, onCartClick }: HeaderProps) 
     <header className="sticky top-0 bg-card z-10 border-b shadow-sm">
       <div className="container mx-auto py-3 px-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
-          {restaurant.logo && (
+          {restaurant.logo ? (
             <img 
               src={restaurant.logo} 
               alt={`${restaurant.name} Logo`} 
-              className="w-10 h-10 rounded-md"
+              className="w-10 h-10 object-contain"
             />
+          ) : (
+            <div className="w-10 h-10 bg-primary/20 rounded-md flex items-center justify-center">
+              <span className="text-lg font-bold text-primary">
+                {restaurant.name.charAt(0)}
+              </span>
+            </div>
           )}
           <h1 className="text-xl font-bold">{restaurant.name}</h1>
         </div>

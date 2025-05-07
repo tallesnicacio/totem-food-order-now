@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Restaurant } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Upload } from "lucide-react";
 
 interface AppearanceSettingsProps {
@@ -18,6 +18,8 @@ export const AppearanceSettings = ({ restaurant, onUpdate }: AppearanceSettingsP
   const [themeColor, setThemeColor] = useState(restaurant?.themeColor || "#FF5722");
   const [logoUrl, setLogoUrl] = useState(restaurant?.logo || "");
   const [uploading, setUploading] = useState(false);
+
+  const { toast } = useToast();
 
   const handleThemeColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newColor = e.target.value;
@@ -38,12 +40,15 @@ export const AppearanceSettings = ({ restaurant, onUpdate }: AppearanceSettingsP
       const fileName = `${crypto.randomUUID()}.${fileExt}`;
       const filePath = `${fileName}`;
       
-      // Upload image
+      // Upload image to the restaurant-assets bucket
       const { error: uploadError } = await supabase.storage
         .from('restaurant-assets')
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Error uploading logo:", uploadError);
+        throw uploadError;
+      }
       
       // Get public URL
       const { data } = supabase.storage
