@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { formatDate } from "@/utils/format";
 import { PageHeader } from "@/components/PageHeader";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Product {
   id: string;
@@ -29,28 +30,55 @@ const DailyInventory = () => {
   const [dailyInventoryId, setDailyInventoryId] = useState<string | null>(null);
   const [showStockFields, setShowStockFields] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
-    fetchTodaysInventory();
-  }, []);
+    if (user) {
+      fetchTodaysInventory();
+    }
+  }, [user]);
 
   const fetchTodaysInventory = async () => {
     try {
       setLoading(true);
+      console.log("Fetching today's inventory...");
       
       // Get current establishment ID (in a real app, this would come from user context)
-      // For now we'll just get the first restaurant in the database
       const { data: establishmentData, error: establishmentError } = await supabase
         .from('establishments')
         .select('id')
         .limit(1);
       
-      if (establishmentError) throw establishmentError;
+      if (establishmentError) {
+        console.error("Error fetching establishment:", establishmentError);
+        throw establishmentError;
+      }
+      
       if (!establishmentData || establishmentData.length === 0) {
-        throw new Error("No establishment found");
+        console.warn("No establishment found, creating a default one");
+        // Create a default establishment if none exists
+        const { data: newEstablishment, error: newEstablishmentError } = await supabase
+          .from('establishments')
+          .insert({
+            name: 'Default Establishment',
+            active: true
+          })
+          .select();
+          
+        if (newEstablishmentError) {
+          console.error("Error creating new establishment:", newEstablishmentError);
+          throw newEstablishmentError;
+        }
+        
+        if (!newEstablishment || newEstablishment.length === 0) {
+          throw new Error("Failed to create new establishment");
+        }
+        
+        establishmentData = newEstablishment;
       }
       
       const establishmentId = establishmentData[0].id;
+      console.log("Using establishment ID:", establishmentId);
       
       // Check if there's already a daily inventory for today
       const today = new Date().toISOString().split('T')[0];
@@ -61,7 +89,10 @@ const DailyInventory = () => {
         .eq('date', today)
         .limit(1);
       
-      if (inventoryError) throw inventoryError;
+      if (inventoryError) {
+        console.error("Error fetching inventory:", inventoryError);
+        throw inventoryError;
+      }
       
       let inventory;
       let dailyProducts: any[] = [];
@@ -69,6 +100,7 @@ const DailyInventory = () => {
       if (inventoryData && inventoryData.length > 0) {
         // Found existing inventory for today
         inventory = inventoryData[0];
+        console.log("Found existing inventory:", inventory.id);
         setDailyInventoryId(inventory.id);
         setRegisterOpened(inventory.register_opened);
         
@@ -88,7 +120,10 @@ const DailyInventory = () => {
           `)
           .eq('daily_inventory_id', inventory.id);
         
-        if (productsError) throw productsError;
+        if (productsError) {
+          console.error("Error fetching daily products:", productsError);
+          throw productsError;
+        }
         
         if (productsData) {
           dailyProducts = productsData.map((item) => ({
@@ -103,6 +138,7 @@ const DailyInventory = () => {
         
       } else {
         // No inventory yet, create a new one
+        console.log("Creating new inventory for today");
         const { data: newInventory, error: newInventoryError } = await supabase
           .from('daily_inventory')
           .insert({
@@ -112,13 +148,17 @@ const DailyInventory = () => {
           })
           .select();
         
-        if (newInventoryError) throw newInventoryError;
+        if (newInventoryError) {
+          console.error("Error creating new inventory:", newInventoryError);
+          throw newInventoryError;
+        }
         
         if (!newInventory || newInventory.length === 0) {
           throw new Error("Failed to create new inventory");
         }
         
         inventory = newInventory[0];
+        console.log("New inventory created:", inventory.id);
         setDailyInventoryId(inventory.id);
         setRegisterOpened(false);
         
@@ -127,10 +167,14 @@ const DailyInventory = () => {
           .from('products')
           .select('id, name, out_of_stock');
         
-        if (productsError) throw productsError;
+        if (productsError) {
+          console.error("Error fetching products:", productsError);
+          throw productsError;
+        }
         
         if (!allProducts || allProducts.length === 0) {
           // No products found, just set empty array
+          console.log("No products found");
           setProducts([]);
           setLoading(false);
           return;
@@ -146,11 +190,15 @@ const DailyInventory = () => {
         }));
         
         if (dailyProductsToInsert.length > 0) {
+          console.log("Inserting", dailyProductsToInsert.length, "daily products");
           const { error: insertError } = await supabase
             .from('daily_products')
             .insert(dailyProductsToInsert);
           
-          if (insertError) throw insertError;
+          if (insertError) {
+            console.error("Error inserting daily products:", insertError);
+            throw insertError;
+          }
         }
         
         // Format products for state
@@ -165,7 +213,7 @@ const DailyInventory = () => {
       }
       
       setProducts(dailyProducts);
-      setLoading(false);
+      console.log("Inventory fetch complete, products:", dailyProducts.length);
     } catch (error) {
       console.error("Error fetching inventory:", error);
       toast({
@@ -173,6 +221,7 @@ const DailyInventory = () => {
         description: "Não foi possível carregar o inventário diário.",
         variant: "destructive",
       });
+    } finally {
       setLoading(false);
     }
   };
@@ -198,19 +247,32 @@ const DailyInventory = () => {
   const handleSaveInventory = async () => {
     try {
       setSaving(true);
+      console.log("Saving inventory, ID:", dailyInventoryId);
       
       if (!dailyInventoryId) {
+        console.error("No inventory ID found");
         toast({
           title: "Erro",
-          description: "ID do inventário não encontrado. Tente recarregar a página.",
+          description: "ID do inventário não encontrado. Tentando recriar o inventário.",
           variant: "destructive",
         });
-        setSaving(false);
-        return;
+        
+        // Attempt to recreate the inventory
+        await fetchTodaysInventory();
+        
+        if (!dailyInventoryId) {
+          toast({
+            title: "Erro",
+            description: "Não foi possível criar o inventário. Tente recarregar a página.",
+            variant: "destructive",
+          });
+          setSaving(false);
+          return;
+        }
       }
       
       // Update register_opened status
-      await supabase
+      const { error: updateError } = await supabase
         .from('daily_inventory')
         .update({
           register_opened: registerOpened,
@@ -218,13 +280,21 @@ const DailyInventory = () => {
         })
         .eq('id', dailyInventoryId);
       
+      if (updateError) {
+        console.error("Error updating inventory:", updateError);
+        throw updateError;
+      }
+      
       // Get existing daily products
       const { data: existingProducts, error: fetchError } = await supabase
         .from('daily_products')
         .select('id, product_id')
         .eq('daily_inventory_id', dailyInventoryId);
       
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error("Error fetching existing products:", fetchError);
+        throw fetchError;
+      }
       
       if (!existingProducts) {
         throw new Error("Failed to fetch existing products");
@@ -242,7 +312,7 @@ const DailyInventory = () => {
         
         if (dailyProductId) {
           // Update existing daily product
-          await supabase
+          const { error: productUpdateError } = await supabase
             .from('daily_products')
             .update({
               available: product.available,
@@ -251,13 +321,38 @@ const DailyInventory = () => {
             })
             .eq('id', dailyProductId);
             
+          if (productUpdateError) {
+            console.error("Error updating daily product:", productUpdateError);
+            continue;  // Continue with other products even if one fails
+          }
+            
           // Also update the product's out_of_stock flag in the products table
-          await supabase
+          const { error: productTableUpdateError } = await supabase
             .from('products')
             .update({
               out_of_stock: !product.available
             })
             .eq('id', product.id);
+            
+          if (productTableUpdateError) {
+            console.error("Error updating product out_of_stock:", productTableUpdateError);
+          }
+        } else {
+          console.warn("Daily product not found for product ID:", product.id);
+          // Create a new daily product entry
+          const { error: insertError } = await supabase
+            .from('daily_products')
+            .insert({
+              daily_inventory_id: dailyInventoryId,
+              product_id: product.id,
+              available: product.available,
+              initial_stock: product.initial_stock,
+              minimum_stock: product.minimum_stock
+            });
+            
+          if (insertError) {
+            console.error("Error inserting daily product:", insertError);
+          }
         }
       }
       
