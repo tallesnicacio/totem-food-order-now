@@ -1,14 +1,22 @@
 
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
-  // Redireciona para o dashboard automaticamente
+  // Redirects users based on authentication state
   useEffect(() => {
-    navigate("/dashboard");
-  }, [navigate]);
+    if (!loading) {
+      if (user) {
+        navigate("/dashboard");
+      } else {
+        navigate("/auth");
+      }
+    }
+  }, [navigate, user, loading]);
 
   return null; // Não renderiza nada, pois o redirecionamento acontecerá
 };

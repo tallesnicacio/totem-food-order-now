@@ -19,6 +19,22 @@ import Products from "./pages/Products";
 import SystemAdmin from "./pages/SystemAdmin";
 import { useAuth } from "./hooks/useAuth";
 
+// Protected route component that redirects to auth if not logged in
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen">Carregando...</div>;
+  }
+  
+  return user ? <>{children}</> : <Navigate to="/auth" replace />;
+};
+
+// Unprotected route for public pages (only Totem and QR code menu are public)
+const UnprotectedRoute = ({ children }: { children: React.ReactNode }) => {
+  return <>{children}</>;
+};
+
 // Protegendo rotas com verificação de acesso de adminstrador do sistema
 const SystemAdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -40,10 +56,30 @@ const SystemAdminRoute = ({ children }: { children: React.ReactNode }) => {
 const queryClient = new QueryClient();
 
 const AppRoutes = () => {
+  const { user, loading } = useAuth();
+  
+  // If not logged in, redirect to auth page except for QR code and Totem routes
+  if (!loading && !user) {
+    return (
+      <Routes>
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/totem" element={<TotemMenu />} />
+        <Route path="/qrcode" element={<QRCodeMenu />} />
+        <Route path="*" element={<Navigate to="/auth" replace />} />
+      </Routes>
+    );
+  }
+  
   return (
     <Routes>
       {/* Rota de autenticação sem layout de App */}
-      <Route path="/auth" element={<Auth />} />
+      <Route path="/auth" element={
+        user ? <Navigate to="/dashboard" replace /> : <Auth />
+      } />
+      
+      {/* Rotas públicas (Totem e QRCode) */}
+      <Route path="/totem" element={<UnprotectedRoute><TotemMenu /></UnprotectedRoute>} />
+      <Route path="/qrcode" element={<UnprotectedRoute><QRCodeMenu /></UnprotectedRoute>} />
       
       {/* Rota administrativa do sistema - acesso restrito */}
       <Route path="/system-admin" element={
@@ -54,17 +90,15 @@ const AppRoutes = () => {
         </SystemAdminRoute>
       } />
       
-      {/* Rotas do cliente com layout de App */}
-      <Route path="/" element={<AppLayout><Index /></AppLayout>} />
-      <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
-      <Route path="/products" element={<AppLayout><Products /></AppLayout>} />
-      <Route path="/daily-inventory" element={<AppLayout><DailyInventory /></AppLayout>} />
-      <Route path="/totem" element={<AppLayout><TotemMenu /></AppLayout>} />
-      <Route path="/qrcode" element={<AppLayout><QRCodeMenu /></AppLayout>} />
-      <Route path="/qr-generator" element={<AppLayout><QRGenerator /></AppLayout>} />
-      <Route path="/kitchen" element={<AppLayout><Kitchen /></AppLayout>} />
-      <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
-      <Route path="/admin" element={<AppLayout><Admin /></AppLayout>} />
+      {/* Rotas do cliente com layout de App - protegidas por autenticação */}
+      <Route path="/" element={<ProtectedRoute><AppLayout><Index /></AppLayout></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
+      <Route path="/products" element={<ProtectedRoute><AppLayout><Products /></AppLayout></ProtectedRoute>} />
+      <Route path="/daily-inventory" element={<ProtectedRoute><AppLayout><DailyInventory /></AppLayout></ProtectedRoute>} />
+      <Route path="/qr-generator" element={<ProtectedRoute><AppLayout><QRGenerator /></AppLayout></ProtectedRoute>} />
+      <Route path="/kitchen" element={<ProtectedRoute><AppLayout><Kitchen /></AppLayout></ProtectedRoute>} />
+      <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
+      <Route path="/admin" element={<ProtectedRoute><AppLayout><Admin /></AppLayout></ProtectedRoute>} />
       
       {/* Página não encontrada */}
       <Route path="*" element={<NotFound />} />

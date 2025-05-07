@@ -29,6 +29,13 @@ const QRCodeMenu = () => {
   const { products, loading: loadingProducts } = useProducts(selectedCategory || undefined);
   const { restaurant, loading: loadingRestaurant } = useRestaurant();
   
+  // Apply theme color from restaurant settings if available
+  useEffect(() => {
+    if (restaurant?.themeColor) {
+      document.documentElement.style.setProperty('--primary', restaurant.themeColor);
+    }
+  }, [restaurant]);
+  
   useEffect(() => {
     // Parse table ID from URL query params
     // Format: /qrcode?e={establishment_id}&m={mesa_id}

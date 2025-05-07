@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { CartDrawer } from "@/components/CartDrawer";
 import { CategorySelector } from "@/components/CategorySelector";
@@ -27,6 +26,11 @@ const TotemMenu = () => {
   const { products, loading: loadingProducts } = useProducts(selectedCategory || undefined);
   const { restaurant, loading: loadingRestaurant } = useRestaurant();
   
+  // Apply theme color from restaurant settings if available
+  if (restaurant?.themeColor) {
+    document.documentElement.style.setProperty('--primary', restaurant.themeColor);
+  }
+
   const handleAddToCart = (product: Product) => {
     setCartItems(prevItems => {
       const existingItem = prevItems.find(item => item.product.id === product.id);
