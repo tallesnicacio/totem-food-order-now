@@ -36,6 +36,7 @@ export const mapOrderFromDB = (order: OrderRow): OrderSummary => ({
   status: order.status as 'new' | 'preparing' | 'ready' | 'delivered',
   dayOrderNumber: order.day_order_number,
   createdAt: order.created_at,
+  paymentMethod: order.payment_method, // Add this to fix the missing property error
 });
 
 export const mapRestaurantFromDB = (restaurant: RestaurantRow): Restaurant => ({
