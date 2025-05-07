@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { AppLayout } from "@/layouts/AppLayout";
 import Dashboard from "@/pages/Dashboard";
@@ -15,13 +15,15 @@ import NotFound from "@/pages/NotFound";
 import Admin from "@/pages/Admin";
 import CommunityQR from "@/pages/CommunityQR";
 import CommunityMenu from "@/pages/CommunityMenu";
+import Index from "@/pages/Index";
 
 function App() {
   return (
-    <Router>
+    <>
       <Routes>
+        <Route path="/" element={<Index />} />
         <Route path="/" element={<AppLayout />}>
-          <Route index element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
           <Route path="products" element={<Products />} />
           <Route path="kitchen" element={<Kitchen />} />
           <Route path="settings" element={<Settings />} />
@@ -37,7 +39,7 @@ function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />
-    </Router>
+    </>
   );
 }
 
