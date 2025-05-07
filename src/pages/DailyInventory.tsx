@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { formatDate } from "@/utils/format";
 import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
@@ -27,7 +26,6 @@ const DailyInventory = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [registerOpened, setRegisterOpened] = useState(false);
   const [dailyInventoryId, setDailyInventoryId] = useState<string | null>(null);
   const [showStockFields, setShowStockFields] = useState(false);
   const { toast } = useToast();
@@ -46,7 +44,7 @@ const DailyInventory = () => {
       console.log("Fetching today's inventory...");
       
       // Get current establishment ID (in a real app, this would come from user context)
-      const { data, error: establishmentError } = await supabase
+      const { data: establishmentData, error: establishmentError } = await supabase
         .from('establishments')
         .select('id')
         .limit(1);
@@ -58,7 +56,7 @@ const DailyInventory = () => {
       
       let establishmentId;
       
-      if (!data || data.length === 0) {
+      if (!establishmentData || establishmentData.length === 0) {
         console.warn("No establishment found, creating a default one");
         // Create a default establishment if none exists
         const { data: newEstablishment, error: newEstablishmentError } = await supabase
@@ -80,7 +78,7 @@ const DailyInventory = () => {
         
         establishmentId = newEstablishment[0].id;
       } else {
-        establishmentId = data[0].id;
+        establishmentId = establishmentData[0].id;
       }
       
       console.log("Using establishment ID:", establishmentId);
@@ -107,7 +105,6 @@ const DailyInventory = () => {
         inventory = inventoryData[0];
         console.log("Found existing inventory:", inventory.id);
         setDailyInventoryId(inventory.id);
-        setRegisterOpened(inventory.register_opened);
         
         // Fetch the daily products
         const { data: productsData, error: productsError } = await supabase
@@ -165,7 +162,6 @@ const DailyInventory = () => {
         inventory = newInventory[0];
         console.log("New inventory created:", inventory.id);
         setDailyInventoryId(inventory.id);
-        setRegisterOpened(false);
         
         // Get all products
         const { data: allProducts, error: productsError } = await supabase
@@ -189,7 +185,7 @@ const DailyInventory = () => {
         const dailyProductsToInsert = allProducts.map((product) => ({
           daily_inventory_id: inventory.id,
           product_id: product.id,
-          available: !product.out_of_stock,
+          available: !product.out_of_stock,  // Produtos não esgotados estão disponíveis por padrão
           initial_stock: null,
           minimum_stock: null
         }));
@@ -210,7 +206,7 @@ const DailyInventory = () => {
         dailyProducts = allProducts.map((product) => ({
           id: product.id,
           name: product.name,
-          available: !product.out_of_stock,
+          available: !product.out_of_stock,  // Sincronizar com o status out_of_stock
           initial_stock: null,
           minimum_stock: null,
           out_of_stock: product.out_of_stock
@@ -274,20 +270,6 @@ const DailyInventory = () => {
           setSaving(false);
           return;
         }
-      }
-      
-      // Update register_opened status
-      const { error: updateError } = await supabase
-        .from('daily_inventory')
-        .update({
-          register_opened: registerOpened,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', dailyInventoryId);
-      
-      if (updateError) {
-        console.error("Error updating inventory:", updateError);
-        throw updateError;
       }
       
       // Get existing daily products
@@ -397,27 +379,6 @@ const DailyInventory = () => {
         currentPage="Estoque Diário"
       />
       
-      <Card className="mb-8">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-            <div>
-              <CardTitle>Status do Caixa</CardTitle>
-              <CardDescription>Defina se o caixa está aberto ou fechado</CardDescription>
-            </div>
-            <div className="flex items-center space-x-2 mt-4 sm:mt-0">
-              <Switch
-                id="register-status"
-                checked={registerOpened}
-                onCheckedChange={setRegisterOpened}
-              />
-              <Label htmlFor="register-status">
-                {registerOpened ? "Caixa Aberto" : "Caixa Fechado"}
-              </Label>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
-      
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
         <h2 className="text-xl font-bold">Produtos Disponíveis Hoje</h2>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -442,10 +403,10 @@ const DailyInventory = () => {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
                 <div className="font-medium mb-2 sm:mb-0">{product.name}</div>
                 <div className="flex items-center space-x-2">
-                  <Switch
+                  <Checkbox
                     id={`product-${product.id}`}
                     checked={product.available}
-                    onCheckedChange={(checked) => handleAvailabilityChange(product.id, checked)}
+                    onCheckedChange={(checked) => handleAvailabilityChange(product.id, checked === true)}
                   />
                   <Label htmlFor={`product-${product.id}`}>
                     {product.available ? "Disponível" : "Indisponível"}
