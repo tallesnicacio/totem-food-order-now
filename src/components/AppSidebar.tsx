@@ -1,173 +1,133 @@
-
-import { useState, useEffect } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarSeparator
-} from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
-import { 
-  LayoutDashboard, 
-  PackageOpen, 
-  ShoppingBag, 
-  Settings, 
-  ChefHat, 
-  QrCode, 
-  Monitor, 
-  LogOut,
-  Shield
+  LayoutDashboard,
+  Package2,
+  ChefHat,
+  Settings,
+  QrCode,
+  CreditCard,
+  Users,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/components/ui/use-toast";
+import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export function AppSidebar() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const { user } = useAuth();
-  
-  // Definir usuários administradores do sistema
-  const isSystemAdmin = user?.email && (
-    user.email === "admin@menutoten.com" || 
-    user.email === "contato@matheusgusso.com" || 
-    user.email === "dev@menutoten.com"
-  );
-
-  const menuItems = [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: LayoutDashboard
-    },
-    {
-      title: "Produtos",
-      url: "/products",
-      icon: PackageOpen
-    },
-    {
-      title: "Cozinha",
-      url: "/kitchen",
-      icon: ChefHat
-    },
-    {
-      title: "Modo Totem",
-      url: "/totem",
-      icon: Monitor
-    },
-    {
-      title: "QR Code Menu",
-      url: "/qrcode",
-      icon: QrCode
-    },
-    {
-      title: "Gerador QR Code",
-      url: "/qr-generator",
-      icon: QrCode
-    },
-    {
-      title: "Configurações",
-      url: "/settings",
-      icon: Settings
-    }
-  ];
-  
-  // Adiciona item de menu de administração do sistema apenas para administradores
-  if (isSystemAdmin) {
-    menuItems.push({
-      title: "Administração do Sistema",
-      url: "/system-admin",
-      icon: Shield
-    });
-  }
-
-  const handleLogout = async () => {
-    try {
-      setIsLoggingOut(true);
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Logout realizado com sucesso",
-        description: "Você foi desconectado do sistema"
-      });
-
-      navigate("/auth");
-    } catch (error: any) {
-      console.error("Erro ao fazer logout:", error);
-      toast({
-        title: "Erro ao fazer logout",
-        description: error.message || "Não foi possível desconectar",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
-
-  const isActive = (url: string) => {
-    return location.pathname === url;
-  };
+  const { pathname } = useLocation();
+  const { signOut, user } = useAuth();
 
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <div className="flex items-center justify-center p-4">
-          <Link to="/" className="flex items-center gap-2">
-            <ShoppingBag className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">MenuTotem</h1>
-          </Link>
+    <div>
+      <div className="flex flex-col gap-2 px-4 py-3">
+        <Link to="/" className="flex items-center gap-2 font-bold">
+          <img src="/logo.svg" alt="MenuTotem" className="h-8 w-8" />
+          MenuTotem
+        </Link>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="w-full justify-start gap-2">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={user?.user_metadata?.avatar_url} />
+                <AvatarFallback>{user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <span>{user?.email}</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-80" align="end">
+            <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => signOut()}>
+              Sair
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      
+      <div className="mb-4">
+        <div className="px-3 py-2">
+          <h2 className="mb-2 px-4 text-xs font-semibold">Menu</h2>
+          <div className="space-y-1">
+            <Button
+              variant={pathname === "/" ? "default" : "ghost"}
+              size="sm"
+              className="w-full justify-start"
+              asChild
+            >
+              <Link to="/">
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                Dashboard
+              </Link>
+            </Button>
+            <Button
+              variant={pathname === "/products" ? "default" : "ghost"}
+              size="sm"
+              className="w-full justify-start"
+              asChild
+            >
+              <Link to="/products">
+                <Package2 className="mr-2 h-4 w-4" />
+                Produtos
+              </Link>
+            </Button>
+            <Button
+              variant={pathname === "/kitchen" ? "default" : "ghost"}
+              size="sm"
+              className="w-full justify-start"
+              asChild
+            >
+              <Link to="/kitchen">
+                <ChefHat className="mr-2 h-4 w-4" />
+                Cozinha
+              </Link>
+            </Button>
+            <Button
+              variant={pathname === "/qr-generator" ? "default" : "ghost"}
+              size="sm"
+              className="w-full justify-start"
+              asChild
+            >
+              <Link to="/qr-generator">
+                <QrCode className="mr-2 h-4 w-4" />
+                QR Code
+              </Link>
+            </Button>
+            <Button
+              variant={pathname === "/community-qr" ? "default" : "ghost"}
+              size="sm"
+              className="w-full justify-start"
+              asChild
+            >
+              <Link to="/community-qr">
+                <Users className="mr-2 h-4 w-4" />
+                QR Comunitário
+              </Link>
+            </Button>
+            <Button
+              variant={pathname === "/settings" ? "default" : "ghost"}
+              size="sm"
+              className="w-full justify-start"
+              asChild
+            >
+              <Link to="/settings">
+                <Settings className="mr-2 h-4 w-4" />
+                Configurações
+              </Link>
+            </Button>
+            <Button
+              variant={pathname === "/subscription" ? "default" : "ghost"}
+              size="sm"
+              className="w-full justify-start"
+              asChild
+            >
+              <Link to="/subscription">
+                <CreditCard className="mr-2 h-4 w-4" />
+                Assinatura
+              </Link>
+            </Button>
+          </div>
         </div>
-      </SidebarHeader>
-
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild 
-                    isActive={isActive(item.url)}
-                    tooltip={item.title}
-                  >
-                    <Link to={item.url}>
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-
-      <SidebarFooter>
-        <SidebarSeparator />
-        <div className="p-4">
-          <Button 
-            variant="outline" 
-            className="w-full justify-start"
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Sair
-          </Button>
-        </div>
-      </SidebarFooter>
-    </Sidebar>
+      </div>
+    </div>
   );
 }
