@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -36,9 +35,8 @@ const QRCodeMenu = () => {
     }
   }, [restaurant]);
   
+  // Parse table ID from URL query params
   useEffect(() => {
-    // Parse table ID from URL query params
-    // Format: /qrcode?e={establishment_id}&m={mesa_id}
     const params = new URLSearchParams(location.search);
     const mesa = params.get("m");
     if (mesa) {

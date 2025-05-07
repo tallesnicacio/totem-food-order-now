@@ -7,7 +7,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
-  // Redirects users based on authentication state
+  // Redirect users based on authentication state
   useEffect(() => {
     if (!loading) {
       if (user) {
@@ -18,7 +18,7 @@ const Index = () => {
     }
   }, [navigate, user, loading]);
 
-  return null; // Não renderiza nada, pois o redirecionamento acontecerá
+  return null; // Doesn't render anything as redirection will occur
 };
 
 export default Index;

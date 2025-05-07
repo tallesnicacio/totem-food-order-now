@@ -35,7 +35,7 @@ const UnprotectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// Protegendo rotas com verificação de acesso de adminstrador do sistema
+// Admin route with verification for system administrator access
 const SystemAdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   
@@ -43,8 +43,7 @@ const SystemAdminRoute = ({ children }: { children: React.ReactNode }) => {
     return <div className="flex items-center justify-center h-screen">Carregando...</div>;
   }
   
-  // Verifica se o usuário tem permissão de administrador do sistema
-  // Aqui estamos usando emails específicos como exemplo
+  // Verify if the user has system administrator permission
   const isSystemAdmin = user?.email && 
     (user.email === "admin@menutoten.com" || 
      user.email === "contato@matheusgusso.com" || 
@@ -56,32 +55,17 @@ const SystemAdminRoute = ({ children }: { children: React.ReactNode }) => {
 const queryClient = new QueryClient();
 
 const AppRoutes = () => {
-  const { user, loading } = useAuth();
-  
-  // If not logged in, redirect to auth page except for QR code and Totem routes
-  if (!loading && !user) {
-    return (
-      <Routes>
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/totem" element={<TotemMenu />} />
-        <Route path="/qrcode" element={<QRCodeMenu />} />
-        <Route path="*" element={<Navigate to="/auth" replace />} />
-      </Routes>
-    );
-  }
-  
   return (
     <Routes>
-      {/* Rota de autenticação sem layout de App */}
-      <Route path="/auth" element={
-        user ? <Navigate to="/dashboard" replace /> : <Auth />
-      } />
+      {/* Public routes - no auth required */}
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/totem" element={<TotemMenu />} />
+      <Route path="/qrcode" element={<QRCodeMenu />} />
       
-      {/* Rotas públicas (Totem e QRCode) */}
-      <Route path="/totem" element={<UnprotectedRoute><TotemMenu /></UnprotectedRoute>} />
-      <Route path="/qrcode" element={<UnprotectedRoute><QRCodeMenu /></UnprotectedRoute>} />
+      {/* Redirect root to auth if not logged in, or to dashboard if logged in */}
+      <Route path="/" element={<Index />} />
       
-      {/* Rota administrativa do sistema - acesso restrito */}
+      {/* System admin routes */}
       <Route path="/system-admin" element={
         <SystemAdminRoute>
           <AppLayout>
@@ -90,8 +74,7 @@ const AppRoutes = () => {
         </SystemAdminRoute>
       } />
       
-      {/* Rotas do cliente com layout de App - protegidas por autenticação */}
-      <Route path="/" element={<ProtectedRoute><AppLayout><Index /></AppLayout></ProtectedRoute>} />
+      {/* Protected routes - require authentication */}
       <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/products" element={<ProtectedRoute><AppLayout><Products /></AppLayout></ProtectedRoute>} />
       <Route path="/daily-inventory" element={<ProtectedRoute><AppLayout><DailyInventory /></AppLayout></ProtectedRoute>} />
@@ -100,7 +83,7 @@ const AppRoutes = () => {
       <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute><AppLayout><Admin /></AppLayout></ProtectedRoute>} />
       
-      {/* Página não encontrada */}
+      {/* Not found page */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
