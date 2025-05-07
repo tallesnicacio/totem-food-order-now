@@ -35,7 +35,7 @@ export const ProductFilterTabs = ({
       
       <TabsContent value="available">
         <ProductTable 
-          products={products.filter(p => !p.outOfStock)} 
+          products={products.filter(p => !(p.outOfStock || p.out_of_stock))} 
           loading={loading} 
           onEdit={onEdit}
           onDelete={onDelete}
@@ -44,7 +44,7 @@ export const ProductFilterTabs = ({
       
       <TabsContent value="out-of-stock">
         <ProductTable 
-          products={products.filter(p => p.outOfStock)} 
+          products={products.filter(p => p.outOfStock || p.out_of_stock)} 
           loading={loading}
           onEdit={onEdit}
           onDelete={onDelete} 

@@ -30,6 +30,7 @@ export const PRODUCTS: Product[] = [
     description: 'Pão, hambúrguer, queijo, alface, tomate e molho especial',
     price: 25.9,
     image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=300&h=200&q=80',
+    category_id: '1',
     categoryId: '1'
   },
   {
@@ -38,6 +39,7 @@ export const PRODUCTS: Product[] = [
     description: 'Pão, hambúrguer, queijo, bacon crocante, alface, tomate e molho barbecue',
     price: 29.9,
     image: 'https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=300&h=200&q=80',
+    category_id: '1',
     categoryId: '1'
   },
   {
@@ -46,6 +48,7 @@ export const PRODUCTS: Product[] = [
     description: 'Pão integral, burguer de grão de bico, queijo vegano, alface, tomate e molho especial',
     price: 27.9,
     image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=300&h=200&q=80',
+    category_id: '1',
     categoryId: '1'
   },
   {
@@ -54,6 +57,7 @@ export const PRODUCTS: Product[] = [
     description: 'Lata 350ml. Temos Coca-Cola, Guaraná e Sprite',
     price: 6.9,
     image: 'https://images.unsplash.com/photo-1581006852262-e4307cf6283a?auto=format&fit=crop&w=300&h=200&q=80',
+    category_id: '2',
     categoryId: '2'
   },
   {
@@ -62,6 +66,7 @@ export const PRODUCTS: Product[] = [
     description: 'Copo 400ml. Sabores: Laranja, Limão, Maracujá',
     price: 9.9,
     image: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=300&h=200&q=80',
+    category_id: '2',
     categoryId: '2'
   },
   {
@@ -70,6 +75,7 @@ export const PRODUCTS: Product[] = [
     description: '4 hambúrgueres clássicos, 4 porções de batata e 4 refrigerantes',
     price: 109.9,
     image: 'https://images.unsplash.com/photo-1610614819513-58e34989848b?auto=format&fit=crop&w=300&h=200&q=80',
+    category_id: '3',
     categoryId: '3'
   },
   {
@@ -78,6 +84,7 @@ export const PRODUCTS: Product[] = [
     description: '1 hambúrguer, 1 batata e 1 refrigerante',
     price: 35.9,
     image: 'https://images.unsplash.com/photo-1610614819513-58e34989848b?auto=format&fit=crop&w=300&h=200&q=80',
+    category_id: '3',
     categoryId: '3'
   },
   {
@@ -86,6 +93,7 @@ export const PRODUCTS: Product[] = [
     description: 'Casquinha ou copinho. Sabores: Chocolate, Baunilha, Morango',
     price: 8.9,
     image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=300&h=200&q=80',
+    category_id: '4',
     categoryId: '4'
   }
 ];

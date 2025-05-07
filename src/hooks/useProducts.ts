@@ -45,7 +45,7 @@ export const useProducts = () => {
           description: product.description,
           price: product.price,
           image: product.image,
-          category_id: product.categoryId,
+          category_id: product.categoryId || product.category_id,
           out_of_stock: product.outOfStock || false,
           available: product.available !== undefined ? product.available : true
         })
@@ -83,7 +83,7 @@ export const useProducts = () => {
           description: product.description,
           price: product.price,
           image: product.image,
-          category_id: product.categoryId,
+          category_id: product.categoryId || product.category_id,
           out_of_stock: product.outOfStock || false,
           available: product.available !== undefined ? product.available : true
         })

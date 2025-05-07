@@ -1,3 +1,4 @@
+
 export interface CartItem {
   product: {
     id: string;
@@ -14,6 +15,7 @@ export interface CartItem {
 export interface Category {
   id: string;
   name: string;
+  icon?: string;
 }
 
 export interface Product {
@@ -23,10 +25,27 @@ export interface Product {
   price: number;
   image: string;
   category_id: string;
+  categoryId?: string;  // Compatibility field for frontend
   category?: Category;
+  outOfStock?: boolean;
+  available?: boolean;
 }
 
-// Add OrderSummary if it doesn't exist
+export interface Restaurant {
+  id: string;
+  name: string;
+  logo?: string;
+  themeColor?: string;
+  useTables: boolean;
+  paymentMethods: {
+    pix: boolean;
+    creditCard: boolean;
+    cash: boolean;
+    payLater: boolean;
+  };
+  paymentTiming: 'before' | 'after';
+}
+
 export interface OrderSummary {
   id: string;
   dayOrderNumber?: number;

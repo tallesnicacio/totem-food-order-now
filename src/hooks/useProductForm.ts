@@ -39,7 +39,7 @@ export const useProductForm = (product: Product | null, onSubmit: (product: Prod
           description: product.description,
           price: product.price,
           image: product.image,
-          categoryId: product.categoryId,
+          categoryId: product.categoryId || product.category_id,
           outOfStock: product.outOfStock || false,
         }
       : {
@@ -73,6 +73,7 @@ export const useProductForm = (product: Product | null, onSubmit: (product: Prod
       description: values.description,
       price: values.price,
       image: values.image,
+      category_id: values.categoryId,
       categoryId: values.categoryId,
       outOfStock: values.outOfStock,
     });

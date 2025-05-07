@@ -56,7 +56,18 @@ const QRCodeMenu = () => {
         );
       }
       
-      return [...prevItems, { product, quantity: 1 }];
+      // Convert Product to CartItem.product format
+      return [...prevItems, { 
+        product: {
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          description: product.description,
+          categoryId: product.categoryId || product.category_id
+        }, 
+        quantity: 1 
+      }];
     });
   };
   

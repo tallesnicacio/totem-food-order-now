@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { CartItem, OrderSummary } from "@/types";
 
@@ -182,7 +181,7 @@ export const getAllOrders = async (): Promise<OrderSummary[]> => {
         id: order.id,
         dayOrderNumber: order.day_order_number,
         createdAt: order.created_at,
-        status: order.status,
+        status: order.status as 'new' | 'preparing' | 'ready' | 'delivered',
         total: order.total,
         paymentMethod: order.payment_method,
         tableId: order.table_id,

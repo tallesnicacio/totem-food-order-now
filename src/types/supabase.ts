@@ -21,9 +21,10 @@ export const mapProductFromDB = (product: ProductRow): Product => ({
   description: product.description,
   price: Number(product.price),
   image: product.image,
-  categoryId: product.category_id,
-  outOfStock: product.out_of_stock,
-  available: product.available,
+  category_id: product.category_id,
+  categoryId: product.category_id, // Add this for frontend compatibility
+  outOfStock: product.out_of_stock || false,
+  available: product.available !== undefined ? product.available : true,
 });
 
 export const mapOrderFromDB = (order: OrderRow): OrderSummary => ({
@@ -34,8 +35,7 @@ export const mapOrderFromDB = (order: OrderRow): OrderSummary => ({
   customerName: order.customer_name || undefined,
   status: order.status as 'new' | 'preparing' | 'ready' | 'delivered',
   dayOrderNumber: order.day_order_number,
-  createdAt: new Date(order.created_at),
-  updatedAt: new Date(order.updated_at),
+  createdAt: order.created_at,
 });
 
 export const mapRestaurantFromDB = (restaurant: RestaurantRow): Restaurant => ({
