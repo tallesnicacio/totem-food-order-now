@@ -255,69 +255,6 @@ const QRGenerator = () => {
     );
   }
 
-  const generateTemporaryQRCode = () => {
-    if (!restaurant?.id || !baseUrl) return;
-    
-    // Create URL based on active tab
-    let url;
-    if (activeTab === "table") {
-      url = `${baseUrl}/qrcode?e=${restaurant.id}&m=${tableNumber}`;
-    } else {
-      url = `${baseUrl}/qrcode?e=${restaurant.id}`;
-    }
-    
-    // Use the Google Charts API to generate QR codes
-    const encodedUrl = encodeURIComponent(url);
-    const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodedUrl}`;
-    
-    setQrCodeUrl(qrUrl);
-  };
-
-  const handleCopyLink = (url: string) => {
-    if (!url) return;
-    
-    // Find the actual URL to copy (not the image URL)
-    const qrCode = activeTab === "table"
-      ? storedQRCodes.find(qr => qr.table_number === tableNumber)
-      : storedQRCodes.find(qr => qr.table_number === null);
-    
-    const urlToCopy = qrCode 
-      ? qrCode.qr_code_url 
-      : `${baseUrl}/qrcode?e=${restaurant?.id}${activeTab === "table" ? `&m=${tableNumber}` : ''}`;
-    
-    navigator.clipboard.writeText(urlToCopy).then(() => {
-      setCopySuccess(true);
-      toast({
-        title: "Link copiado!",
-        description: "O link foi copiado para a área de transferência.",
-      });
-      setTimeout(() => setCopySuccess(false), 2000);
-    });
-  };
-
-  const handleTableChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTableNumber(e.target.value);
-  };
-
-  const handleDownloadQR = () => {
-    if (!qrCodeUrl) return;
-    
-    // Create an invisible link element to download the QR code
-    const link = document.createElement("a");
-    link.href = qrCodeUrl;
-    link.download = activeTab === "table" 
-      ? `qrcode-mesa-${tableNumber}.png` 
-      : "qrcode-geral.png";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast({
-      title: "QR Code baixado",
-      description: "O QR Code foi baixado com sucesso.",
-    });
-  };
-
   return (
     <div className="container max-w-4xl mx-auto">
       <PageHeader 
