@@ -21,6 +21,7 @@ import MasterAdmin from "@/pages/MasterAdmin";
 import Restaurants from "@/pages/Restaurants";
 import CashFlow from "@/pages/CashFlow";
 import InventoryCheck from "@/pages/InventoryCheck";
+import SetMasterAdmin from "@/pages/SetMasterAdmin";
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
           <Route path="system-admin" element={<SystemAdmin />} />
           <Route path="cashflow" element={<CashFlow />} />
           <Route path="inventory" element={<InventoryCheck />} />
+          <Route path="set-master-admin" element={<SetMasterAdmin />} />
         </Route>
         <Route path="/totem" element={<TotemMenu />} />
         <Route path="/qrcode" element={<QRCodeMenu />} />
