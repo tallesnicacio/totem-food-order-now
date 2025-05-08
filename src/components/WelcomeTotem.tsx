@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 interface WelcomeTotemProps {
   restaurantName: string;
-  logo?: string;
+  logo?: string | null;
   onStart: () => void;
 }
 
@@ -17,6 +17,11 @@ export const WelcomeTotem = ({ restaurantName, logo, onStart }: WelcomeTotemProp
               src={logo} 
               alt={`${restaurantName} Logo`} 
               className="w-32 h-32 mb-6 object-contain"
+              onError={(e) => {
+                console.error("Failed to load logo:", logo);
+                // Replace with fallback when image fails to load
+                e.currentTarget.src = "/logo.svg";
+              }}
             />
           ) : (
             <div className="w-32 h-32 mb-6 bg-primary/20 rounded-full flex items-center justify-center">

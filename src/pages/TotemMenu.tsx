@@ -125,7 +125,7 @@ const TotemMenu = () => {
     return sum + (item.product.price * item.quantity);
   }, 0);
 
-  // Show loading state
+  // Show loading state while fetching restaurant data
   if (loadingRestaurant && totemState !== "welcome") {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -137,10 +137,10 @@ const TotemMenu = () => {
   
   return (
     <>
-      {totemState === "welcome" && restaurant && (
+      {totemState === "welcome" && (
         <WelcomeTotem 
-          restaurantName={restaurant.name}
-          logo={restaurant.logo}
+          restaurantName={restaurant?.name || "Restaurante"}
+          logo={restaurant?.logo}
           onStart={() => setTotemState("menu")}
         />
       )}
