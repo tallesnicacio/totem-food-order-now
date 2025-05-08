@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { CartDrawer } from "@/components/CartDrawer";
@@ -115,7 +114,8 @@ const QRCodeMenu = () => {
       const order = await createOrder(cartItems, total, paymentMethod, customerName, finalTableId);
       
       if (order) {
-        setOrderNumber(order.id.slice(-4));
+        // Use the day_order_number instead of the UUID slice
+        setOrderNumber(order.day_order_number.toString());
         setMenuState("success");
       } else {
         throw new Error("Failed to create order");

@@ -97,7 +97,8 @@ const TotemMenu = () => {
       const order = await createOrder(cartItems, total, paymentMethod, customerName, tableId);
       
       if (order) {
-        setOrderNumber(order.id.slice(-4));
+        // Use the day_order_number instead of the UUID slice
+        setOrderNumber(order.day_order_number.toString());
         setTotemState("success");
       } else {
         throw new Error("Failed to create order");

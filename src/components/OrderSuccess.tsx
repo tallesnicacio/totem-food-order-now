@@ -18,7 +18,7 @@ export const OrderSuccess = ({ orderNumber, onNewOrder }: OrderSuccessProps) => 
           
           <h1 className="text-3xl font-bold mb-2">Pedido Recebido!</h1>
           <p className="text-lg mb-2">Seu número de pedido é:</p>
-          <p className="text-4xl font-bold mb-6 text-primary">{orderNumber}</p>
+          <p className="text-4xl font-bold mb-6 text-primary">#{orderNumber}</p>
           
           <p className="text-lg mb-8">
             Acompanhe seu preparo nos monitores e aguarde ser chamado.
