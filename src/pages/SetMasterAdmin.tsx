@@ -94,10 +94,10 @@ export default function SetMasterAdmin() {
               </Alert>
             )}
             
-            <Alert variant="warning">
+            <Alert variant="destructive" className="bg-amber-50 border-amber-200">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Importante</AlertTitle>
-              <AlertDescription>
+              <AlertTitle className="text-amber-800">Importante</AlertTitle>
+              <AlertDescription className="text-amber-700">
                 Esta é uma operação privilegiada. Apenas defina usuários de confiança como Master Admin.
               </AlertDescription>
             </Alert>
