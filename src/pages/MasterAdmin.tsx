@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,62 +9,12 @@ import { CommunityQRManagement } from "@/components/admin/CommunityQRManagement"
 import { BillingOverview } from "@/components/admin/billing/BillingOverview";
 import { PlansManagement } from "@/components/admin/plans/PlansManagement";
 import { PageHeader } from "@/components/PageHeader";
-import { supabase } from "@/integrations/supabase/client";
-import { Shield, Lock } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const MasterAdmin = () => {
-  const [loading, setLoading] = useState(true);
-  const { user, userRole } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkMasterAccess = async () => {
-      try {
-        if (!user) {
-          navigate('/auth');
-          return;
-        }
-        
-        setLoading(false);
-        
-        // If the user is not a master admin, redirect to dashboard
-        if (userRole !== 'master') {
-          toast({
-            title: "Acesso restrito",
-            description: "Esta área é exclusiva para administradores master.",
-            variant: "destructive",
-          });
-          navigate('/dashboard');
-        }
-      } catch (error) {
-        console.error("Erro ao verificar permissões:", error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível verificar suas permissões.",
-          variant: "destructive",
-        });
-        navigate('/dashboard');
-      }
-    };
-    
-    checkMasterAccess();
-  }, [toast, navigate, user, userRole]);
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-6">
-        <PageHeader 
-          title="Administração Master" 
-          description="Área restrita para administração master"
-          currentPage="Administração Master"
-        />
-        <div className="text-center py-10">Carregando dados...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-6">

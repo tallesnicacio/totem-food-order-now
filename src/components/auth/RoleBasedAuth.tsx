@@ -16,22 +16,17 @@ export const RoleBasedAuth = ({
   allowedRoles, 
   redirectTo = "/auth" 
 }: RoleBasedAuthProps) => {
-  const { user, loading } = useAuth();
-  
-  // Check if the user is loaded and has a role
-  // Note: In a real system, you'd fetch the user's role from the database
-  // For this example, we're assuming the role is stored in user metadata
-  const userRole = user?.user_metadata?.role as UserRole || "customer";
+  const { user, loading, userRole } = useAuth();
   
   if (loading) {
-    return <div>Carregando...</div>;
+    return <div className="p-8 text-center">Verificando suas permissões...</div>;
   }
   
   if (!user) {
     return <Navigate to={redirectTo} />;
   }
   
-  if (!allowedRoles.includes(userRole)) {
+  if (!allowedRoles.includes(userRole as UserRole)) {
     return <Navigate to="/dashboard" />;
   }
   

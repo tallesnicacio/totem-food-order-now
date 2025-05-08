@@ -6,11 +6,13 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { setMasterAdmin } from "@/utils/setMasterAdmin";
 import { PageHeader } from "@/components/PageHeader";
-import { Shield } from "lucide-react";
+import { Shield, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function SetMasterAdmin() {
-  const [email, setEmail] = useState("talles.nicacio@gmail.com");
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const { toast } = useToast();
 
   const handleSetMasterAdmin = async () => {
@@ -25,6 +27,7 @@ export default function SetMasterAdmin() {
 
     try {
       setLoading(true);
+      setSuccess(false);
       const result = await setMasterAdmin(email);
       
       toast({
@@ -32,6 +35,7 @@ export default function SetMasterAdmin() {
         description: `${email} foi definido como Master Admin.`,
       });
       
+      setSuccess(true);
       console.log("Resultado:", result);
     } catch (error) {
       console.error("Erro ao definir Master Admin:", error);
@@ -58,7 +62,8 @@ export default function SetMasterAdmin() {
         <CardHeader>
           <CardTitle>Definir Master Admin</CardTitle>
           <CardDescription>
-            Insira o email do usuário que você deseja definir como Master Admin
+            Insira o email do usuário que você deseja definir como Master Admin.
+            Este usuário terá acesso completo ao sistema.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -79,6 +84,23 @@ export default function SetMasterAdmin() {
             >
               {loading ? "Processando..." : "Definir como Master Admin"}
             </Button>
+            
+            {success && (
+              <Alert className="bg-green-50 border-green-200">
+                <AlertTitle className="text-green-800 font-medium">Sucesso!</AlertTitle>
+                <AlertDescription className="text-green-700">
+                  O usuário {email} agora é um Master Admin. Peça para ele fazer logout e login novamente para que as alterações tenham efeito.
+                </AlertDescription>
+              </Alert>
+            )}
+            
+            <Alert variant="warning">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Importante</AlertTitle>
+              <AlertDescription>
+                Esta é uma operação privilegiada. Apenas defina usuários de confiança como Master Admin.
+              </AlertDescription>
+            </Alert>
           </div>
         </CardContent>
       </Card>

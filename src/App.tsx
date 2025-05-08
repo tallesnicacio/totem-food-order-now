@@ -22,12 +22,21 @@ import Restaurants from "@/pages/Restaurants";
 import CashFlow from "@/pages/CashFlow";
 import InventoryCheck from "@/pages/InventoryCheck";
 import SetMasterAdmin from "@/pages/SetMasterAdmin";
+import { RoleBasedAuth } from "@/components/auth/RoleBasedAuth";
 
 function App() {
   return (
     <>
       <Routes>
+        {/* Public routes */}
         <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/totem" element={<TotemMenu />} />
+        <Route path="/qrcode" element={<QRCodeMenu />} />
+        <Route path="/community" element={<CommunityMenu />} />
+        <Route path="/set-master-admin" element={<SetMasterAdmin />} />
+        
+        {/* Restaurant admin/staff routes */}
         <Route path="/" element={<AppLayout />}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="restaurants" element={<Restaurants />} />
@@ -37,17 +46,43 @@ function App() {
           <Route path="qr-generator" element={<QRGenerator />} />
           <Route path="community-qr" element={<CommunityQR />} />
           <Route path="subscription" element={<Subscription />} />
-          <Route path="admin" element={<Admin />} />
-          <Route path="master-admin" element={<MasterAdmin />} />
-          <Route path="system-admin" element={<SystemAdmin />} />
           <Route path="cashflow" element={<CashFlow />} />
           <Route path="inventory" element={<InventoryCheck />} />
-          <Route path="set-master-admin" element={<SetMasterAdmin />} />
         </Route>
-        <Route path="/totem" element={<TotemMenu />} />
-        <Route path="/qrcode" element={<QRCodeMenu />} />
-        <Route path="/community" element={<CommunityMenu />} />
-        <Route path="/auth" element={<Auth />} />
+        
+        {/* System admin routes */}
+        <Route path="/" element={<AppLayout />}>
+          <Route 
+            path="system-admin" 
+            element={
+              <RoleBasedAuth allowedRoles={["admin", "master"]}>
+                <SystemAdmin />
+              </RoleBasedAuth>
+            } 
+          />
+          <Route 
+            path="admin" 
+            element={
+              <RoleBasedAuth allowedRoles={["admin", "master"]}>
+                <Admin />
+              </RoleBasedAuth>
+            } 
+          />
+        </Route>
+        
+        {/* Master admin routes */}
+        <Route path="/" element={<AppLayout />}>
+          <Route 
+            path="master-admin" 
+            element={
+              <RoleBasedAuth allowedRoles={["master"]}>
+                <MasterAdmin />
+              </RoleBasedAuth>
+            } 
+          />
+        </Route>
+        
+        {/* 404 route */}
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Toaster />

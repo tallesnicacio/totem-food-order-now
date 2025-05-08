@@ -7,7 +7,6 @@ import {
   QrCode,
   CreditCard,
   Users,
-  X,
   DatabaseIcon,
   FileCheck,
   Lock,
@@ -17,12 +16,10 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export function AppSidebar() {
   const { pathname } = useLocation();
   const { signOut, user, userRole } = useAuth();
-  const isMobile = useIsMobile();
   
   const isMasterAdmin = userRole === 'master';
 
@@ -57,6 +54,7 @@ export function AppSidebar() {
         <div className="px-3 py-2">
           <h2 className="mb-2 px-4 text-xs font-semibold">Menu</h2>
           <div className="space-y-1">
+            {/* Regular restaurant features */}
             <Button
               variant={pathname === "/dashboard" ? "default" : "ghost"}
               size="sm"
@@ -159,17 +157,20 @@ export function AppSidebar() {
             
             {/* Only show Master Admin link for users with master role */}
             {isMasterAdmin && (
-              <Button
-                variant={pathname === "/master-admin" ? "default" : "ghost"}
-                size="sm"
-                className="w-full justify-start"
-                asChild
-              >
-                <Link to="/master-admin">
-                  <Lock className="mr-2 h-4 w-4" />
-                  Admin Master
-                </Link>
-              </Button>
+              <>
+                <div className="mt-6 mb-2 px-4 text-xs font-semibold">Administração</div>
+                <Button
+                  variant={pathname === "/master-admin" ? "default" : "ghost"}
+                  size="sm"
+                  className="w-full justify-start bg-purple-50 hover:bg-purple-100 text-purple-800 border-l-2 border-purple-500"
+                  asChild
+                >
+                  <Link to="/master-admin">
+                    <Lock className="mr-2 h-4 w-4" />
+                    Admin Master
+                  </Link>
+                </Button>
+              </>
             )}
           </div>
         </div>
