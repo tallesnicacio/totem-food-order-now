@@ -10,6 +10,9 @@ import {
   DatabaseIcon,
   FileCheck,
   Lock,
+  Building,
+  Shield,
+  ServerCog,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -155,10 +158,25 @@ export function AppSidebar() {
               </Link>
             </Button>
             
-            {/* Only show Master Admin link for users with master role */}
+            {/* Only show Admin section for users with master role */}
             {isMasterAdmin && (
               <>
                 <div className="mt-6 mb-2 px-4 text-xs font-semibold">Administração</div>
+                
+                {/* Restaurant Management */}
+                <Button
+                  variant={pathname === "/restaurants" ? "default" : "ghost"}
+                  size="sm"
+                  className="w-full justify-start"
+                  asChild
+                >
+                  <Link to="/restaurants">
+                    <Building className="mr-2 h-4 w-4" />
+                    Restaurantes
+                  </Link>
+                </Button>
+                
+                {/* Master Admin */}
                 <Button
                   variant={pathname === "/master-admin" ? "default" : "ghost"}
                   size="sm"
@@ -168,6 +186,45 @@ export function AppSidebar() {
                   <Link to="/master-admin">
                     <Lock className="mr-2 h-4 w-4" />
                     Admin Master
+                  </Link>
+                </Button>
+                
+                {/* System Admin */}
+                <Button
+                  variant={pathname === "/system-admin" ? "default" : "ghost"}
+                  size="sm"
+                  className="w-full justify-start"
+                  asChild
+                >
+                  <Link to="/system-admin">
+                    <ServerCog className="mr-2 h-4 w-4" />
+                    Admin Sistema
+                  </Link>
+                </Button>
+                
+                {/* Admin */}
+                <Button
+                  variant={pathname === "/admin" ? "default" : "ghost"}
+                  size="sm"
+                  className="w-full justify-start"
+                  asChild
+                >
+                  <Link to="/admin">
+                    <Shield className="mr-2 h-4 w-4" />
+                    Admin
+                  </Link>
+                </Button>
+                
+                {/* Set Master Admin */}
+                <Button
+                  variant={pathname === "/set-master-admin" ? "default" : "ghost"}
+                  size="sm"
+                  className="w-full justify-start"
+                  asChild
+                >
+                  <Link to="/set-master-admin">
+                    <Lock className="mr-2 h-4 w-4" />
+                    Configurar Master Admin
                   </Link>
                 </Button>
               </>
