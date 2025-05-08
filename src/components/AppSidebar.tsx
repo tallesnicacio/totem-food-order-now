@@ -10,6 +10,7 @@ import {
   X,
   DatabaseIcon,
   FileCheck,
+  Lock,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -20,8 +21,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 export function AppSidebar() {
   const { pathname } = useLocation();
-  const { signOut, user } = useAuth();
+  const { signOut, user, userRole } = useAuth();
   const isMobile = useIsMobile();
+  
+  const isMasterAdmin = userRole === 'master';
 
   return (
     <div className="h-full border-r bg-background w-64 flex flex-col">
@@ -153,6 +156,21 @@ export function AppSidebar() {
                 Assinatura
               </Link>
             </Button>
+            
+            {/* Only show Master Admin link for users with master role */}
+            {isMasterAdmin && (
+              <Button
+                variant={pathname === "/master-admin" ? "default" : "ghost"}
+                size="sm"
+                className="w-full justify-start"
+                asChild
+              >
+                <Link to="/master-admin">
+                  <Lock className="mr-2 h-4 w-4" />
+                  Admin Master
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>

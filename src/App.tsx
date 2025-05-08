@@ -17,6 +17,7 @@ import CommunityQR from "@/pages/CommunityQR";
 import CommunityMenu from "@/pages/CommunityMenu";
 import Index from "@/pages/Index";
 import SystemAdmin from "@/pages/SystemAdmin";
+import MasterAdmin from "@/pages/MasterAdmin";
 import Restaurants from "@/pages/Restaurants";
 import CashFlow from "@/pages/CashFlow";
 import InventoryCheck from "@/pages/InventoryCheck";
@@ -36,6 +37,7 @@ function App() {
           <Route path="community-qr" element={<CommunityQR />} />
           <Route path="subscription" element={<Subscription />} />
           <Route path="admin" element={<Admin />} />
+          <Route path="master-admin" element={<MasterAdmin />} />
           <Route path="system-admin" element={<SystemAdmin />} />
           <Route path="cashflow" element={<CashFlow />} />
           <Route path="inventory" element={<InventoryCheck />} />
